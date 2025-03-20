@@ -9,10 +9,12 @@ export const authOptions = {
       maxAge: 60 * 60 * 24 * 30,
     },
     callbacks: {
-      async session({ session, token, user }:{session: any, token: JWT, user: User}) {
-        session.org = 'Peakam'
-        return session
-      }
+      async jwt({ token, user }:{token: JWT, user: any}) {
+        if (user) {
+          token.role = user.role;
+        }
+        return token;
+      },
     },
     providers: [
         CredentialsProvider({
@@ -22,7 +24,7 @@ export const authOptions = {
             transactionId: { label: "Transaction Id", type: "text", placeholder: "Transaction Id" },
           },
           async authorize(credentials, req) {
-            const superUser = { id: "1", name: "Peakam", email: "peak@peakam.se" }
+            const superUser = { id: "1", name: "Peakam", email: "peak@peakam.se", role:'admin!'}
 
             if (credentials?.transactionId === '12345') {
               return superUser

@@ -20,7 +20,7 @@ export async function GET (req: NextApiRequest, res: NextApiResponse){
     const ge = await getTransaction(sc.id);
 
     console.log('GETGE');
-    console.log(ge);
+    console.log(token);
 
     return Response.json({messages:'Data saved successfully!'}, {status: 201})
 }

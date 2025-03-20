@@ -60,6 +60,6 @@ type TransactionResponseDTO = {
     processStatus: null | string;
     processStatusInfo: null | string;
     qrData: string;
-  };
-  status: string;
+  }|null;
+  status: 'new'|'started'|'complete'|'failed';
 }

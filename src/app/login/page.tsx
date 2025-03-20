@@ -10,21 +10,68 @@ import {
     CardHeader,
     CardTitle,
   } from "@/components/ui/card"
-import QrCodeViewer from "@/components/QrCodeViewer";
-import { FormEvent } from "react";
+import BankIdLoginWithQrCodeComponent from "@/components/BankIdLoginWithQrCodeComponent";
+import { useState } from "react";
+
+type CurrentTransaction = {
+  id:string,
+  status: 'new'|'started'|'complete'|'failed',
+  data:any
+}
 
 export default function InputWithButton() {
+    const [error, setError] = useState('')
+    const [currentTransaction, setCurrentTransaction] = useState<CurrentTransaction|null>(null)
+    const [ssn, setSsn] = useState<String>('')
+    const [disableButon, setDisableButton] = useState<boolean>(false)
 
-    function onBankIdComplete(result:'SUCCESS'|'ERROR'|'CANCEL', data:any){
+    function onBankIdComplete(result:'SUCCESS'|'ERROR'|'CANCEL'|'FAILED'|'RETRY', data:TransactionResponseDTO|null){
         console.log(result)
         console.log(data)
+        if(result == 'CANCEL'){
+          setCurrentTransaction(null)
+        }
+        if(result == 'RETRY'){
+          handleGetLoginSession()
+        }
+        setDisableButton(false)
     }
-    const getToken = async () => {
-        const response  = await fetch("/api/auth/test", {
+
+    const handleGetLoginSession = async () => {
+      setDisableButton(true)
+      if(ssn.length != 13){
+        console.log('invalidssn' + ssn.length)
+        setError('Invalid swedish social security number.');
+        setDisableButton(false)
+        return;
+      }
+
+      setError('');
+      try{
+        //check if user can with ssn can login
+
+        const response  = await fetch("/api/auth/bankId/new", {
             method: "GET",
         })
-        console.log(response)
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data: NewTransactionResponse = await response.json();
+        console.log(data)
+        setCurrentTransaction({
+          id:data.id,
+          status: 'new',
+          data: null
+        })
+
+        }catch(e){
+          console.log('Något gått fell')
+          setDisableButton(false)
+        }
     }
+
 
   return (
     <div className="w-screen h-svh flex justify-center items-center">
@@ -34,19 +81,23 @@ export default function InputWithButton() {
         <CardDescription>Fill in Social security number and continues with BankId</CardDescription>
       </CardHeader>
       <CardContent>
-        <form>
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="socialSecurityNumber">Social security number</Label>
               <div className="flex">
-                <Input id="socialSecurityNumber" placeholder="xxxxxxxx-xxxx" />
-                <Button className="ml-2">BankId</Button>
+                <Input id="socialSecurityNumber" type="text"  placeholder="xxxxxxxx-xxxx" onChange={e=>setSsn(e.currentTarget.value)}/>
+                <Button disabled={disableButon} onClick={handleGetLoginSession} className="ml-2">BankId</Button>
               </div>
-              <QrCodeViewer onComplete={onBankIdComplete} transactionId='bankid.84407fe2-4ecf-46fc-93d5-c22c41a9055c.49.5381e71a110da4b6d7619aa902c5d9ae6063372fb13e2c0889d8b8780955518b'></QrCodeViewer>
-              <Button onClick={getToken}>test</Button>
+              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p>
+              {
+                currentTransaction && 
+                <BankIdLoginWithQrCodeComponent onComplete={onBankIdComplete} transactionId={currentTransaction.id}/>
+              }
+              {//<Button onClick={getToken}>test</Button>
+              }
             </div>
           </div>
-        </form>
       </CardContent>
     </Card>
     </div>

@@ -31,7 +31,7 @@ async function makeRequest<T>(
 function toTransactionResponseDTO(response: TransactionResponse){
     const a = {
         id: response.id,
-        bankId: response.providerInfo.seBankID,
+        bankId: response.providerInfo?.seBankID,
         status:response.status
     }
     return a
