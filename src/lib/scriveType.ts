@@ -49,7 +49,7 @@ type TransactionResponse = {
     };
   };
   redirectUrl: string;
-  status: string;
+  status:  'new'|'started'|'complete'|'failed';
 };
 
 type TransactionResponseDTO = {

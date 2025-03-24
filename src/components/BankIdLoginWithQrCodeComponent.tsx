@@ -95,7 +95,7 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
 
     const intervalId = setInterval(async() => {
       const getTransactionData = await getTransaction()
-      console.log(getTransactionData)
+      console.log(getTransactionData?.bankId?.processStatus)
       setTransactionData(getTransactionData)
 
       if(getTransactionData?.status == 'failed'){

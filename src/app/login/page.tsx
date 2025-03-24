@@ -1,4 +1,5 @@
 "use client"
+import { useRouter } from 'next/navigation'
 import { signIn } from "next-auth/react";
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,8 @@ import {
   } from "@/components/ui/card"
 import BankIdLoginWithQrCodeComponent from "@/components/BankIdLoginWithQrCodeComponent";
 import { useState } from "react";
+import { X } from 'lucide-react';
+import Link from 'next/link';
 
 type CurrentTransaction = {
   id:string,
@@ -20,40 +23,79 @@ type CurrentTransaction = {
 }
 
 export default function InputWithButton() {
-    const [error, setError] = useState('')
-    const [currentTransaction, setCurrentTransaction] = useState<CurrentTransaction|null>(null)
-    const [ssn, setSsn] = useState<String>('')
-    const [disableButon, setDisableButton] = useState<boolean>(false)
+  const router = useRouter()
+  const [error, setError] = useState('')
+  const [currentTransaction, setCurrentTransaction] = useState<CurrentTransaction|null>(null)
+  const [ssn, setSsn] = useState<string>('')
+  const [disableButon, setDisableButton] = useState<boolean>(false)
 
-    function onBankIdComplete(result:'SUCCESS'|'ERROR'|'CANCEL'|'FAILED'|'RETRY', data:TransactionResponseDTO|null){
-        console.log(result)
-        console.log(data)
-        if(result == 'CANCEL'){
+    // Mark async function properly and define return type as Promise<void>
+    const onBankIdComplete = async (
+      result: 'SUCCESS' | 'ERROR' | 'CANCEL' | 'FAILED' | 'RETRY', 
+      data: TransactionResponseDTO | null
+    ): Promise<void> => {
+      console.log(result)
+      console.log(data)
+
+      // Handle different result cases
+      if (result === 'CANCEL') {
           setCurrentTransaction(null)
-        }
-        if(result == 'RETRY'){
+      }
+      if (result === 'RETRY') {
           handleGetLoginSession()
-        }
-        setDisableButton(false)
-    }
+      }
+      if (result === 'SUCCESS') {
+          if (!currentTransaction?.id) {
+            setError('Some error occured')
+              return
+          }
+          const signInResult = await signIn("credentials", {
+              redirect: false,
+              transactionId: currentTransaction.id,
+          })
+          if (signInResult?.error) {
+              setError('Sign-in failed')
+          }
+          if (signInResult?.ok) {
+            console.log('Sign-in success')
+            router.push('/')
+          }
+      }
+
+      setDisableButton(false)
+  }
 
     const handleGetLoginSession = async () => {
       setDisableButton(true)
-      if(ssn.length != 13){
+
+      const pattern = /^\d{8}-\d{4}$/;
+      if(!pattern.test(ssn)){
         console.log('invalidssn' + ssn.length)
-        setError('Invalid swedish social security number.');
+        setError('Invalid swedish social security number1.');
         setDisableButton(false)
         return;
       }
 
       setError('');
       try{
-        //check if user can with ssn can login
 
+        //Check if user is registered in our system
+        const userResponse  = await fetch("/api/users?personalNumber=" + ssn, {
+            method: "GET",
+        })
+        if (userResponse.ok) {
+            const data = await userResponse.json();  // This will parse the JSON body
+            console.log(data);  // Logs the parsed JSON object
+        } else {
+            setError('You are not registered in our system.');
+            setDisableButton(false)
+            return
+        }
+
+        //Start new transaction
         const response  = await fetch("/api/auth/bankId/new", {
             method: "GET",
         })
-
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -74,8 +116,15 @@ export default function InputWithButton() {
 
 
   return (
-    <div className="w-screen h-svh flex justify-center items-center">
-        <Card className="w-[350px]">
+    <div className="w-screen h-svh flex justify-center items-center flex-col">
+      <div className='flex items-center font-semibold text-xl mb-10 underline'>
+        <Link href='https://peakam.se/'>PEAK</Link>
+        <X />
+        <Link href='https://sakra.se/sv/'>SÄKRA</Link>
+        <X />
+        <Link href='https://centevo.se/'>CENTEVO</Link>
+      </div>
+      <Card className="w-[350px]">
       <CardHeader>
         <CardTitle>Login with BankId</CardTitle>
         <CardDescription>Fill in Social security number and continues with BankId</CardDescription>
@@ -94,8 +143,6 @@ export default function InputWithButton() {
                 currentTransaction && 
                 <BankIdLoginWithQrCodeComponent onComplete={onBankIdComplete} transactionId={currentTransaction.id}/>
               }
-              {//<Button onClick={getToken}>test</Button>
-              }
             </div>
           </div>
       </CardContent>
@@ -103,78 +150,3 @@ export default function InputWithButton() {
     </div>
   )
 }
-
-
-    
-/*
-"use client";
-
-import { signIn, signOut } from "next-auth/react";
-import { FormEvent } from "react";
-import { useState } from "react";
-import { useSession } from "next-auth/react"
-import { usePathname } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-
-export default function LoginForm() {
-    const { data: session, status } = useSession()
-    const pathname = usePathname()
-
-    const [input, setInput] = useState({
-        ssn:'',
-        pwd:''
-    });
-
-    console.log(session);
-
-    const onSubmit = async (e:FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-
-        const result = await signIn("credentials", {
-            redirect: false,
-            username: input.ssn,
-            password: input.pwd,
-          });
-      
-          if (result?.error) {
-            console.log('res'+result.error)
-          } else {
-            console.log('hmmm....')
-          }
-
-          console.log(session);
-    }
-    
-    const getToken = async () => {
-        const response  = await fetch("/api/auth/test", {
-            method: "GET",
-        })
-
-        console.log(response)
-    }
-
-    const onChange = (e: React.ChangeEvent<HTMLInputElement >) => {
-        const newValue = e.currentTarget.value;
-        const name = e.currentTarget.name;
-
-        setInput({
-            ...input,
-            [name]:newValue,
-        })
-      }
-
-    return (
-
-        
-        export function InputWithButton() {
-          return (
-            <div className="flex w-full max-w-sm items-center space-x-2">
-              <Input type="email" placeholder="Email" />
-              <Button type="submit">Subscribe</Button>
-            </div>
-          )
-        }
-        
-    )
-}*/

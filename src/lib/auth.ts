@@ -1,6 +1,9 @@
 import NextAuth, { Session, User } from "next-auth"
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { getTransaction } from "./scrive";
+import { getUserByPersonalNumber } from "@/services/userService";
+import { convertPersonalNumber } from "@/utils/stringUtils";
 
 
 export const authOptions = {
@@ -20,14 +23,51 @@ export const authOptions = {
         CredentialsProvider({
           name: "Credentials",
           credentials: {
-            ssn: { label: "Personal number", type: "text", placeholder: "Personal number" },
             transactionId: { label: "Transaction Id", type: "text", placeholder: "Transaction Id" },
           },
           async authorize(credentials, req) {
-            const superUser = { id: "1", name: "Peakam", email: "peak@peakam.se", role:'admin!'}
+            if(!credentials?.transactionId){
+              return null;
+            }
 
-            if (credentials?.transactionId === '12345') {
-              return superUser
+            const st = await getTransaction(credentials.transactionId);
+            if(st.status != 'complete'){
+              return null;
+            }
+
+            let userSSN = st.bankId?.completionData?.user?.personalNumber;
+            if(!userSSN){
+              return null;
+            }
+
+            try{
+              userSSN = convertPersonalNumber(userSSN)
+            }catch(e){
+              return null;
+            }
+
+            //Check if user is registered in our system
+            const user = await getUserByPersonalNumber(userSSN)
+
+            if(user && !user.isActive){
+              return null;
+            }
+
+            if(user){
+              return {
+                id: user._id,
+                personalNumber: user.personalNumber,
+                role: user.role,
+                isActive: user.isActive,
+
+                email: user.email,
+                givenName: user.givenName,
+                surname: user.surname,
+                phoneNumber: user.phoneNumber,
+
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+              };
             }
             
             return null;

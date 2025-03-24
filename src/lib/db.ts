@@ -1,4 +1,8 @@
 import { MongoClient, ServerApiVersion, Db, Collection } from "mongodb";
+import { DBUser } from "./dbType";
+
+const DB_NAME = "PeakAm";
+const USER_COLLECTION_NAME = "users";
 
 // Global variable to store the database client
 let client: MongoClient;
@@ -24,13 +28,19 @@ async function connectToDB(): Promise<MongoClient> {
 }
 
 // Function to get a specific database
-export async function getDB(dbName: string): Promise<Db> {
+async function getDB(dbName: string): Promise<Db> {
   const client = await connectToDB();
   return client.db(dbName);
 }
 
 // Function to get a specific collection
-export async function getCollection(collectionName: string): Promise<Collection<Document>> {
-  const db = await getDB("PeakAm");
+async function getCollection(collectionName: string): Promise<Collection<Document>> {
+  const db = await getDB(DB_NAME);
   return db.collection(collectionName);
+}
+
+// Function to get a specific collection
+export async function getUserCollection(): Promise<Collection<DBUser>> {
+  const db = await getDB(DB_NAME);
+  return db.collection<DBUser>(USER_COLLECTION_NAME);
 }
