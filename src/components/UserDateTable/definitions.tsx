@@ -1,4 +1,4 @@
-import { DBUser } from "@/lib/dbType"
+import { DBUser } from "@/lib/db.type"
 import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "../ui/button"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"

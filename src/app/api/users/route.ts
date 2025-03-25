@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createUser, getUserById, getUserByPersonalNumber, getUsers, updateUser } from "@/services/userService"
-import { DBUser, UserCreate, UserUpdate } from "@/lib/dbType"
+import { DBUser, UserCreate, UserUpdate } from "@/lib/db.type"
+import { toUserCreate, toUserUpdate, verifyBodyUserUpdate } from "./helper";
 
 export async function GET (req: NextRequest, res: NextResponse){
     const personalNumber = req.nextUrl.searchParams.get('personalNumber');
@@ -69,40 +70,10 @@ function verifyBodyUserCreate(body: any){
     if(!body.personalNumber){
         throw new Error('Personal number is required')
     }
-}
-
-function verifyBodyUserUpdate(body: any){
-    if(!body._id){
-        throw new Error('Id is required')
+    if(!body.isActive){
+        throw new Error('isActive is required')
     }
-}
-
-function toUserUpdate(user: DBUser, body: any): DBUser{
-    return {
-        _id: body._id,
-        personalNumber:body.personalNumber ?? user.personalNumber,
-        isActive: body.isActive ?? user.isActive,
-        role: body.role ?? user.role,
-    
-        email: body.email ?? user.email,
-        givenName: body.givenName ?? user.givenName,
-        surname: body.surname ?? user.surname,
-        phoneNumber: body.phoneNumber ?? user.phoneNumber,
-
-        createdAt: user.createdAt,
-        updatedAt: new Date(),
-    }
-}
-
-function toUserCreate(body: any): UserCreate{
-    return {
-        personalNumber:body.personalNumber,
-        isActive: true,
-        role: 'user',
-    
-        email: body.email,
-        givenName: body.givenName,
-        surname: body.surname,
-        phoneNumber: body.phoneNumber ?? undefined,
+    if(!body.role){
+        throw new Error('Role is required')
     }
 }

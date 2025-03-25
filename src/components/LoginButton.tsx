@@ -1,17 +1,14 @@
-'use client'
-import { useSession } from "next-auth/react"
+import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { Button } from "./ui/button";
 
-export default function LoginButton() {
-    const { data } = useSession()
-    console.log(data)
-    console.log(data?.user)
+export default async function LoginButton() {
+  const session = await getServerSession();
   
     return (
       <>
         {
-            data?.user ? (
+            session?.user ? (
                 <Link href='/dashboard'><Button>Go to Dashboard</Button></Link>
             ) : (
                 <Link href='/login'><Button>Login with BankId</Button></Link>

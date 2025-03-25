@@ -1,24 +1,39 @@
-import NextAuth, { Session, User } from "next-auth"
-import { JWT } from "next-auth/jwt";
+import NextAuth, { Session, User} from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getTransaction } from "./scrive";
 import { getUserByPersonalNumber } from "@/services/userService";
 import { convertPersonalNumber } from "@/utils/stringUtils";
+import { JWT } from "next-auth/jwt";
 
 
 export const authOptions = {
-    strategy: "database",
+    strategy: "jwt",
     jwt: {
       maxAge: 60 * 60 * 24 * 30,
     },
     callbacks: {
-      async jwt({ token, user }:{token: JWT, user: any}) {
+      async jwt({ token, user }:{token: JWT, user: User}) {
         if (user) {
-          token.role = user.role;
+          token = {
+            ...token,
+            ...user
+          }
         }
         return token;
       },
+      async session({ session, token }: { session: Session; token: JWT}) {
+        if (session.user) {
+          session.user={
+            ...token,
+          }
+        }
+        return session;
+      },
     },
+
+
+
+    
     providers: [
         CredentialsProvider({
           name: "Credentials",
@@ -30,6 +45,7 @@ export const authOptions = {
               return null;
             }
 
+            //get transaction from bankId
             const st = await getTransaction(credentials.transactionId);
             if(st.status != 'complete'){
               return null;

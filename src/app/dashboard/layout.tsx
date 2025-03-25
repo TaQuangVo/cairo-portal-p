@@ -1,5 +1,4 @@
 import { AppSidebar } from "@/components/AppSidebar"
-import { SiteHeader } from "@/components/SiteHeader"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import React from "react"
 export default function Page({children}:{children:React.ReactNode}) {

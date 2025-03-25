@@ -1,5 +1,5 @@
 'use client'
-import { UserCreate } from "@/lib/dbType";
+import { UserCreate } from "@/lib/db.type";
 import { SessionProvider, signIn } from "next-auth/react"
 import { Suspense } from "react";
 import React, { ReactNode } from 'react';

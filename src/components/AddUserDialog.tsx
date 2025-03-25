@@ -20,7 +20,6 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -33,10 +32,21 @@ import {
 } from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
 import { Separator } from "./ui/separator"
-
+import { convertPersonalNumber } from "@/utils/stringUtils"
 
 const userFormSchema = z.object({
-    personalNumber: z.string().min(10, { message: "Personal number must be at least 10 characters." }),
+    personalNumber: z.string()
+        .min(10, { message: "Personal number must be at least 10 characters." })
+        .refine((value) => {
+            try {
+                convertPersonalNumber(value)
+                return true
+            }catch (error) {
+                return false
+            }
+        }, {
+            message: "Wrong Swedish personal number format.",
+        }),
     role: z.enum(["admin", "user"]),
     isActive: z.boolean(),
     email: z.string().email().optional().nullable(),
@@ -62,7 +72,13 @@ export function AddUserDialog() {
         mode: "onChange",
     })
 
+
     async function onSubmit(data: UserFormValues): Promise<void> {
+        try{
+            data.personalNumber = convertPersonalNumber(data.personalNumber)
+        } catch (error) {
+            return
+        }
         const response  = await fetch("/api/users", {
             method: "POST",
             body: JSON.stringify(data),
@@ -77,13 +93,9 @@ export function AddUserDialog() {
                 ),
             })
         }else{
-            console.log(response)
-            console.log(response.status)
-            const data = await response.json();  // This will parse the JSON body
-            console.log(data);  // Logs the parsed JSON object
+            const data = await response.json();
             toast('Some thing gon wrong')
         }
-
     }
 
     return (
@@ -213,7 +225,7 @@ export function AddUserDialog() {
                             </AccordionItem>
                         </Accordion>
                         <div className="flex justify-end mt-8">
-                            <Button type="submit">Add User</Button>
+                            <Button type="submit" disabled={!form.formState.isValid}>Add User</Button>
                         </div>
                     </form>
                 </Form>

@@ -1,5 +1,5 @@
 import { MongoClient, ServerApiVersion, Db, Collection } from "mongodb";
-import { DBUser } from "./dbType";
+import { DBUser } from "./db.type";
 
 const DB_NAME = "PeakAm";
 const USER_COLLECTION_NAME = "users";

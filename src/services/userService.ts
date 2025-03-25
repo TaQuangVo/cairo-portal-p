@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getUserCollection } from "../lib/db";
-import { DBUser, UserCreate, UserUpdate } from "../lib/dbType";
+import { DBUser, UserCreate, UserUpdate } from "../lib/db.type";
 
   
 export async function createUser(user: UserCreate): Promise<DBUser> {

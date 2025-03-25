@@ -13,8 +13,9 @@ import {
   } from "@/components/ui/card"
 import BankIdLoginWithQrCodeComponent from "@/components/BankIdLoginWithQrCodeComponent";
 import { useState } from "react";
-import { X } from 'lucide-react';
+import { Boxes, X } from 'lucide-react';
 import Link from 'next/link';
+import { convertPersonalNumber } from '@/utils/stringUtils';
 
 type CurrentTransaction = {
   id:string,
@@ -68,19 +69,22 @@ export default function InputWithButton() {
     const handleGetLoginSession = async () => {
       setDisableButton(true)
 
-      const pattern = /^\d{8}-\d{4}$/;
-      if(!pattern.test(ssn)){
-        console.log('invalidssn' + ssn.length)
-        setError('Invalid swedish social security number1.');
+      let verifiedSSN
+      try{
+        verifiedSSN = convertPersonalNumber(ssn)
+        if(verifiedSSN != ssn){
+          setSsn(verifiedSSN)
+        }
+      }catch(e){
+        setError('Invalid swedish social security number.');
         setDisableButton(false)
-        return;
+        return
       }
 
       setError('');
       try{
-
         //Check if user is registered in our system
-        const userResponse  = await fetch("/api/users?personalNumber=" + ssn, {
+        const userResponse  = await fetch("/api/users?personalNumber=" + verifiedSSN, {
             method: "GET",
         })
         if (userResponse.ok) {
@@ -116,13 +120,17 @@ export default function InputWithButton() {
 
 
   return (
-    <div className="w-screen h-svh flex justify-center items-center flex-col">
-      <div className='flex items-center font-semibold text-xl mb-10 underline'>
+    <div className="w-screen h-svh flex justify-center items-center flex-col relativ">
+      <div className='flex items-center font-semibold text-sm lg:text-md mb-10 underline absolute top-0 right-0 m-6'>
         <Link href='https://peakam.se/'>PEAK</Link>
-        <X />
+        <X className="w-5 lg:w-5"/>
         <Link href='https://sakra.se/sv/'>SÄKRA</Link>
-        <X />
+        <X className="w-5 lg:w-5"/>
         <Link href='https://centevo.se/'>CENTEVO</Link>
+      </div>
+      <div className='font-semibold mb-7 text-2xl flex items-center'>
+        <Boxes />
+        <p className='ml-2'>Integration.</p>
       </div>
       <Card className="w-[350px]">
       <CardHeader>
@@ -134,11 +142,11 @@ export default function InputWithButton() {
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="socialSecurityNumber">Social security number</Label>
               <div className="flex">
-                <Input id="socialSecurityNumber" type="text"  placeholder="xxxxxxxx-xxxx" onChange={e=>setSsn(e.currentTarget.value)}/>
+                <Input id="socialSecurityNumber" type="text"  placeholder="xxxxxxxx-xxxx" value={ssn} onChange={e=>setSsn(e.currentTarget.value)}/>
                 <Button disabled={disableButon} onClick={handleGetLoginSession} className="ml-2">BankId</Button>
               </div>
               <p className="text-sm text-red-600">{error}</p>
-              <p className="text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p>
+              <Link href='/'><p className="text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p></Link>
               {
                 currentTransaction && 
                 <BankIdLoginWithQrCodeComponent onComplete={onBankIdComplete} transactionId={currentTransaction.id}/>

@@ -6,11 +6,10 @@ import { RefreshCw } from "lucide-react";
 export default function BankIdLoginWithQrCodeComponent({ transactionId, onComplete }: { transactionId: string, onComplete:(result:'SUCCESS'|'ERROR'|'CANCEL'|'FAILED'|'RETRY', data:TransactionResponseDTO|null)=>void }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null)
-  //const [qrData, setQrData] = useState<string>("");
   const [transactionData, setTransactionData] = useState<TransactionResponseDTO|null>(null)
   const [blueQrCode, setBlueQrCode] = useState<boolean>(false)
   const [timerIntervalId, setTimerIntervalId] = useState<NodeJS.Timeout>();
-  const transactionIdMem = useRef('');
+  const transactionIdMem = useRef(''); // used to prevent double rendering, will cause staring transaction faild
 
   useEffect(() => {
     const qr = new QRCodeStyling({
@@ -88,14 +87,12 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
     setTransactionData(startTransactionData);
 
     if(startTransactionData?.status != 'started'){
-      console.log('error here')
       complete('ERROR', startTransactionData)
       return
     }
 
     const intervalId = setInterval(async() => {
       const getTransactionData = await getTransaction()
-      console.log(getTransactionData?.bankId?.processStatus)
       setTransactionData(getTransactionData)
 
       if(getTransactionData?.status == 'failed'){
@@ -142,17 +139,22 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
           </div>
         }
       </div>
-      {blueQrCode 
+      {(transactionData && blueQrCode)
         ? <p className="text-sm">QR code has expired. 
             <span className="cursor-pointer underline ml-0.5">
               <strong onClick={() => complete('RETRY', null)}>Retry</strong>
             </span>
           </p> 
-        : <p className="text-sm">Scan the QR code using bankId app. 
+        : (transactionData && ! blueQrCode) 
+        ? <p className="text-sm">Scan the QR code using bankId app. 
             <span className="cursor-pointer underline ml-0.5">
               <strong onClick={() => complete('CANCEL', null)}>Cancel</strong>
             </span>
-          </p>}
+          </p>
+        : 
+        <span>
+        </span>
+      }
     </div>
   );
 }

@@ -2,24 +2,16 @@
 
 import * as React from "react"
 import {
-  ArrowUpCircleIcon,
   BarChartIcon,
-  CameraIcon,
-  ClipboardListIcon,
-  DatabaseIcon,
-  FileCodeIcon,
-  FileIcon,
-  FileTextIcon,
   FolderIcon,
   HelpCircleIcon,
   LayoutDashboardIcon,
   ListIcon,
-  SearchIcon,
-  SettingsIcon,
   UsersIcon,
   Bug,
   MailIcon,
-  PlusCircleIcon
+  PlusCircleIcon,
+  Boxes
 } from "lucide-react"
 
 import { NavSection } from "@/components/NavMain"
@@ -123,7 +115,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link href="/dashboard">
-                <ArrowUpCircleIcon className="h-5 w-5" />
+                <Boxes className="h-5 w-5"/>
                 <span className="text-base font-semibold">Integration.</span>
               </Link>
             </SidebarMenuButton>
@@ -132,11 +124,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavSection items={data.navMain} actionButton={data.mainActionButton}/>
-        <NavSection items={data.admin}  title="hello"/>
+        <NavSection items={data.admin}  title="Admin"/>
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )
