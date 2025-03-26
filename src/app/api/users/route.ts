@@ -3,7 +3,7 @@ import { createUser, getUserById, getUserByPersonalNumber, getUsers, updateUser 
 import { DBUser, UserCreate, UserUpdate } from "@/lib/db.type"
 import { toUserCreate, toUserUpdate, verifyBodyUserUpdate } from "./helper";
 
-export async function GET (req: NextRequest, res: NextResponse){
+export async function GET (req: NextRequest){
     const personalNumber = req.nextUrl.searchParams.get('personalNumber');
 
     if(personalNumber){
@@ -22,7 +22,7 @@ export async function GET (req: NextRequest, res: NextResponse){
     }
 }
 
-export async function POST (req: NextRequest, res: NextResponse){
+export async function POST (req: NextRequest){
     const body = await req.json()
     try{
         verifyBodyUserCreate(body)
@@ -42,7 +42,7 @@ export async function POST (req: NextRequest, res: NextResponse){
     return Response.json({messages:'Data saved successfully!'}, {status: 201})
 }
 
-export async function PATCH (req: NextRequest, res: NextResponse){
+export async function PATCH (req: NextRequest){
     const body = await req.json()
     try{
         verifyBodyUserUpdate(body)

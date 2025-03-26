@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt"
 import { DBBasePortfolioSubmittions } from "@/lib/db.type";
 import { getSubmittions } from "@/services/submittionService";
 
-export async function GET (req: NextRequest, res: NextResponse){
+export async function GET (req: NextRequest){
     const token = await getToken({ req })
     const userId = token?.id;
     const userRole = token?.role;

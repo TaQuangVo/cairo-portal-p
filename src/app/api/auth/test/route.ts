@@ -6,7 +6,7 @@ import { getToken } from "next-auth/jwt"
 const secret = process.env.NEXTAUTH_SECRET
 
 
-export async function GET (req: NextRequest, res: NextResponse){
+export async function GET (req: NextRequest){
     const token = await getToken({ req })
 
     const me = await fetchCustomerByPersonalNumber('20000507-4018')

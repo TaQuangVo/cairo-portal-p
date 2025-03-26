@@ -8,7 +8,7 @@ import { saveResponseToSubmittion } from "@/services/submittionService"
 
 
 // POST /api/submittions/portfolios
-export async function POST (req: NextRequest, res: NextResponse){
+export async function POST (req: NextRequest){
     const token = await getToken({ req })
     let userId = token?.id;
     userId = '1234'

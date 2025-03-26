@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt"
 import { sendSubmittionFailureReportMail } from "@/services/emailService";
 
 
-export async function POST (req: NextRequest, res: NextResponse){
+export async function POST (req: NextRequest){
     const token = await getToken({ req })
     const userId = '67e3dafa6b27e2b0d662bdad'
     if(!userId){
