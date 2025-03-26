@@ -27,7 +27,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+import { useState } from "react"
+import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper"
+import NewPortfolioSubmittionResult from "./NewPortfolioSubmittionResult"
+import { cussessResponse, failedResponse } from "@/testData/submittionResponse"
 
 const userPortfolioSchema = z.object({
     firstname: z.string().min(2, "Firstname must be at least 2 characters."),
@@ -55,6 +58,9 @@ const userPortfolioSchema = z.object({
 type UserPortfolioFormValues = z.infer<typeof userPortfolioSchema>
 
 export function NewPortfolioForm() {
+    const [showSubmittionModule, setShowSubmittionModule] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [submittionResult, setSubmittionResult] = useState<NewPortfolioResponse|null>(null)
     const form = useForm<UserPortfolioFormValues>({
         resolver: zodResolver(userPortfolioSchema),
         defaultValues: {
@@ -73,13 +79,27 @@ export function NewPortfolioForm() {
         mode: "onChange",
     })
 
+    function onCloseModule(open: boolean) {
+        if(isLoading) return
+
+        setShowSubmittionModule(open)
+    }
+
     async function onSubmit(data: UserPortfolioFormValues): Promise<void> {
+        setShowSubmittionModule(true)
+        setIsLoading(true)
+
         const response = await fetch("/api/submittions/portfolios", {
             method: "POST",
             body: JSON.stringify(data),
         })
 
+        setIsLoading(false)
+        const responseData = await response.json()
+        setSubmittionResult(responseData as NewPortfolioResponse)
+
         if (response.ok) {
+
             toast("User Portfolio added successfully!", {
                 description: (
                     <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
@@ -222,36 +242,11 @@ export function NewPortfolioForm() {
                     </div>
                 </form>
             </Form>
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="outline">Edit Profile</Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]" onPointerDownOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
-                    <DialogTitle>Edit profile</DialogTitle>
-                    <DialogDescription>
-                        Make changes to your profile here. Click save when you're done.
-                    </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
-                        Name
-                        </Label>
-                        <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="username" className="text-right">
-                        Username
-                        </Label>
-                        <Input id="username" defaultValue="@peduarte" className="col-span-3" />
-                    </div>
-                    </div>
-                    <DialogFooter>
-                    <Button type="submit">Save changes</Button>
-                    </DialogFooter>
+            <Dialog open={showSubmittionModule} onOpenChange={onCloseModule}>
+                <DialogContent className="sm:max-w-[525px]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
+                    <NewPortfolioSubmittionResult data={submittionResult} onCloseButtonPress={() => setShowSubmittionModule(false)}/>
                 </DialogContent>
-                </Dialog>
+            </Dialog>
         </>
     )
 }

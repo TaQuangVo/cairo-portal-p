@@ -45,12 +45,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     mainActionButton:{
       mainButtonOptions: [{
-          title: 'New Portfolio',
+          title: 'New Portfolio.',
           icon: PlusCircleIcon,
           onClick: () => {router.push('/dashboard/portfolios')},
           value: 'Quick Create'
       },{
-        title: 'Update Portfolio',
+        title: 'Update Portfolio.',
         icon: FilePenLine,
         onClick: () => {console.log('hello main action')},
         value: 'Update Portfolio'

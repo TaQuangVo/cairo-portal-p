@@ -7,10 +7,11 @@ export default async function Page() {
 
     return (
         <>
-            <SiteHeader title="Users"/>
+            <SiteHeader title="Submittions."/>
             <div className="p-7 h-full relative">
                 <PortfolioDataTable portfolios={users}/>
             </div>
         </>
     )
   }
+  //

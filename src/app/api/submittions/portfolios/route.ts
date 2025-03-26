@@ -10,7 +10,8 @@ import { saveResponseToSubmittion } from "@/services/submittionService"
 // POST /api/submittions/portfolios
 export async function POST (req: NextRequest, res: NextResponse){
     const token = await getToken({ req })
-    const userId = token?.id;
+    let userId = token?.id;
+    userId = '1234'
     if(userId === undefined){
         throw new Error('User not authenticated')
     }
@@ -37,7 +38,7 @@ export async function POST (req: NextRequest, res: NextResponse){
     const cairoPortfolio = requestBodies.portfolio
 
     try{
-        const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, [])
+        const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, ['SKIP CUSTOMER CREATION'])
 
         if(response.customerCreation.status !== 'success' && response.customerCreation.status !== 'skipped'){
             const resData:NewPortfolioResponse = {
