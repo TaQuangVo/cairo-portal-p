@@ -1,7 +1,7 @@
 import { getTransaction } from "@/lib/scrive";
-import { NextApiRequest } from "next"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function GET (req: NextApiRequest, { params }:{ params: Promise<{ transactionId: string }> }){
+export async function GET (req: NextRequest, { params }:{ params: Promise<{ transactionId: string }> }){
     const  transactionId  = (await params).transactionId
 
     try{

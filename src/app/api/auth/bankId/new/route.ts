@@ -1,7 +1,7 @@
 import {newTransaction} from "@/lib/scrive"
-import { NextApiRequest, NextApiResponse } from "next"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function GET (req: NextApiRequest, res: NextApiResponse){
+export async function GET (req: NextRequest, res: NextResponse){
     try{
         const sc = await newTransaction();
         return Response.json(sc, {status: 200})

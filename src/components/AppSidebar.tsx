@@ -52,7 +52,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },{
         title: 'Update Portfolio.',
         icon: FilePenLine,
-        onClick: () => {console.log('hello main action')},
+        onClick: () => {router.push('/dashboard/not-implemented')},
         value: 'Update Portfolio'
     }],
       secondaryButton: {
@@ -79,12 +79,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     navSecondary: [
       {
         title: "Get Help",
-        url: "#",
+        url: "/dashboard/not-implemented",
         icon: HelpCircleIcon,
       },
       {
         title: "Report",
-        url: "#",
+        url: "/dashboard/not-implemented",
         icon: Bug,
       },
     ],

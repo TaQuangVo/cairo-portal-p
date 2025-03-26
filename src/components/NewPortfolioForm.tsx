@@ -16,21 +16,14 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { convertPersonalNumber } from "@/utils/stringUtils"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { useState } from "react"
 import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper"
 import NewPortfolioSubmittionResult from "./NewPortfolioSubmittionResult"
-import { cussessResponse, failedResponse } from "@/testData/submittionResponse"
 
 const userPortfolioSchema = z.object({
     firstname: z.string().min(2, "Firstname must be at least 2 characters."),
@@ -186,7 +179,7 @@ export function NewPortfolioForm() {
                             </div>
                             <FormField control={form.control} name="mobile" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Mobile</FormLabel>
+                                    <FormLabel>Mobile (Optional)</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Enter mobile number" {...field} value={field.value ?? ''}/>
                                     </FormControl>
@@ -207,7 +200,7 @@ export function NewPortfolioForm() {
                     {/* Portfolio Configuration Section */}
                             <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Portfolio Type</FormLabel>
+                                    <FormLabel>Portfolio Type*</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger>

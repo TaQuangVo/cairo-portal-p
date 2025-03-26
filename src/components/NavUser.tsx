@@ -29,6 +29,7 @@ import {
 import { signOut, useSession } from "next-auth/react"
 import { Session } from "next-auth"
 import { useEffect, useState } from "react"
+import Link from "next/link"
 
 
 export function NavUser() {
@@ -83,18 +84,12 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserCircleIcon />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notifications
-              </DropdownMenuItem>
+              <Link href='/dashboard/not-implemented'>
+                <DropdownMenuItem>
+                  <UserCircleIcon />
+                  Account
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={()=>signOut()}>
