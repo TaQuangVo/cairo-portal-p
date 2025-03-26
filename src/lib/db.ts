@@ -1,8 +1,9 @@
 import { MongoClient, ServerApiVersion, Db, Collection } from "mongodb";
-import { DBUser } from "./db.type";
+import { DBPortfolioSubmittions, DBUser } from "./db.type";
 
 const DB_NAME = "PeakAm";
 const USER_COLLECTION_NAME = "users";
+const SUBMITTION_COLLECTION_NAME = "submittions";
 
 // Global variable to store the database client
 let client: MongoClient;
@@ -39,8 +40,12 @@ async function getCollection(collectionName: string): Promise<Collection<Documen
   return db.collection(collectionName);
 }
 
-// Function to get a specific collection
 export async function getUserCollection(): Promise<Collection<DBUser>> {
   const db = await getDB(DB_NAME);
   return db.collection<DBUser>(USER_COLLECTION_NAME);
+}
+
+export async function getSubmittionCollection(): Promise<Collection<DBPortfolioSubmittions>> {
+  const db = await getDB(DB_NAME);
+  return db.collection<DBPortfolioSubmittions>(SUBMITTION_COLLECTION_NAME);
 }

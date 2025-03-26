@@ -1,5 +1,5 @@
 import { cairoAuthHeader } from "@/utils/cairoAuthUtils";
-import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustomer, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoPortfolioCreationPayload, CairoPortfolioCreationResponse, CairoResponseCollection, CairoHttpResponse, CairoAccount } from "./cairo.type";
+import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustomer, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoPortfolioCreationPayload, CairoPortfolioCreationResponse, CairoResponseCollection, CairoHttpResponse, CairoAccount, CairoCustomerContact } from "./cairo.type";
 
 
 
@@ -54,9 +54,14 @@ async function makeRequest<T>(
 export async function fetchAccountByCustomerCode(customerCode: string) {
   return makeRequest<CairoResponseCollection<CairoAccount>>(`/accounts/?customerCode=${customerCode}`);
 }
-  
+
+export async function fetchCustomerContactsByCustomerCode(customerCode: string) {
+  return makeRequest<CairoResponseCollection<CairoCustomerContact>>(`/customerContacts/?customerCode=${customerCode}`);
+}
+ 
 export async function fetchCustomerByPersonalNumber(personalNumber: string) {
-    return makeRequest<CairoResponseCollection<CairoCustomer>>(`/customers/?organizationId=${personalNumber}&_fields=+customerContacts`);
+    const customer = await makeRequest<CairoResponseCollection<CairoCustomer>>(`/customers/?organizationId=${personalNumber}&_fields=+accounts,+portfolios,+customerContacts&_no_cache=true`);
+    return customer
 }
 
 export async function createCustomer(customerCreationPayload: CairoCustomerCreationPayload) {
@@ -86,7 +91,7 @@ export async function createPortfolio(portfolioCreationPayload: CairoPortfolioCr
   );
 
   // since cairo return the whole portfolio when create a portfolio and we only interested in the id fields. try to only parse the id
-  if(result.status = 'success', result.data){
+  if(result.status == 'success' && result.data){
     try{
       const responseSimplified = {
         portfolioCode: result.data.portfolioCode

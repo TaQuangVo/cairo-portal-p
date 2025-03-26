@@ -22,7 +22,7 @@ export interface CairoCustomer {
     languageCode: string
     organizationId: string
     managerCode: string
-    customerContacts?: CustomerContact[]; // Via Filter
+    customerContacts?: CairoCustomerContact[]; // Via Filter
 
     customerId: number
     customerDescription: string
@@ -46,7 +46,7 @@ export type CairoCustomerCreationPayload = Required<Pick<CairoCustomer,
 export type CairoCustomerCreationResponse = Required<Pick<CairoCustomer, 'customerCode'>>;
 
 
-export interface CustomerContact {
+export interface CairoCustomerContact {
     customerCode: string;
     contactFirstName?: string;
     contactSurName?: string;

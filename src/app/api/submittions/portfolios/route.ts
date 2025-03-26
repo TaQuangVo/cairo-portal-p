@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
-import { CustomerAccountPortfolioCreationPayload, customerAccountPortfolioCreationPayloadSchema, payloadToRequestBodies} from "./helper"
+import { CustomerAccountPortfolioCreationPayload, customerAccountPortfolioCreationPayloadSchema, NewPortfolioResponse, payloadToRequestBodies} from "./helper"
 import { createCustomerAccountPortfolio, CreationWaring } from "@/services/cairoService"
 import { ZodError } from "zod"
+import { CairoCustomer } from "@/lib/cairo.type"
+import { getToken } from "next-auth/jwt"
+import { saveResponseToSubmittion } from "@/services/submittionService"
+
 
 // POST /api/submittions/portfolios
 export async function POST (req: NextRequest, res: NextResponse){
+    const token = await getToken({ req })
+    const userId = token?.id;
+    if(userId === undefined){
+        throw new Error('User not authenticated')
+    }
+
     const body = await req.json()
 
     let payload:CustomerAccountPortfolioCreationPayload
@@ -13,6 +23,8 @@ export async function POST (req: NextRequest, res: NextResponse){
     }catch(e){
         return Response.json({
             status: 'failed',
+            requestType: 'Create Portfolio',
+            request: body,
             messages:(e as ZodError).issues.map(issues => (issues.message)),
             dataType: 'ZodError',
             data: e
@@ -27,54 +39,79 @@ export async function POST (req: NextRequest, res: NextResponse){
     try{
         const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, [])
 
-        if(response.customerCreation.status !== 'success'){
-            return Response.json({
+        if(response.customerCreation.status !== 'success' && response.customerCreation.status !== 'skipped'){
+            const resData:NewPortfolioResponse = {
                 status: 'failed',
+                requestType: 'Create Portfolio',
+                requestBody: body,
                 messages:'Failed to create customer',
-                datatType: 'SequentialCustomerAccountPortfolioCreatioResult',
+                dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
                 data: response
-            }, {status: 500})
+            }
+            await saveResponseToSubmittion(resData, userId)
+            return Response.json(resData, {status: 500})
         }
     
         if(response.accountCreation.status !== 'success'){
-            return Response.json({
-                status: 'partial failed',
+            const resData:NewPortfolioResponse = {
+                status: 'partial failure',
+                requestType: 'Create Portfolio',
+                requestBody: body,
                 messages:'Failed to create account',
-                datatType: 'SequentialCustomerAccountPortfolioCreatioResult',
+                dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
                 data: response
-            }, {status: 500})
+            }
+            await saveResponseToSubmittion(resData, userId)
+            return Response.json(resData, {status: 500})
         }
     
         if(response.portfolioCreation.status !== 'success'){
-            return Response.json({
-                status: 'partial failed',
+            const resData:NewPortfolioResponse = {
+                status: 'partial failure',
+                requestType: 'Create Portfolio',
+                requestBody: body,
                 messages:'Failed to create portfolio',
-                datatType: 'SequentialCustomerAccountPortfolioCreatioResult',
+                dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
                 data: response
-            }, {status: 500})
+            }
+            await saveResponseToSubmittion(resData, userId)
+            return Response.json(resData, {status: 500})
         }
     
-        return Response.json({
+        const resData:NewPortfolioResponse = {
             status: 'success',
-            messages:'Customer, Account and Portfolio created successfully',
-            datatType: 'SequentialCustomerAccountPortfolioCreatioResult',
+            requestType: 'Create Portfolio',
+            requestBody: body,
+            messages:'Portfolio created successfully',
+            dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
             data: response
-        }, {status: 201})
-    } catch(e){
-        if((e as Error).name === 'Creation warning'){
-            return Response.json({
-                status: 'warning',
-                messages: (e as CreationWaring<any>).message,
-                datatType: 'CairoCustomer',
-                data: (e as CreationWaring<any>).data
-            }, {status: 400})
         }
 
-        return Response.json({
+        await saveResponseToSubmittion(resData, userId)
+        return Response.json(resData, {status: 201})
+    } catch(e){
+        if((e as Error).name === 'Creation warning'){
+            const resData:NewPortfolioResponse = {
+                status: 'warning',
+                requestType: 'Create Portfolio',
+                requestBody: body,
+                messages: (e as CreationWaring<any>).message,
+                dataType: 'CairoCustomer',
+                data: (e as CreationWaring<CairoCustomer>).data
+            }
+            //await saveResponseToSubmittion(resData, userId)
+            return Response.json(resData, {status: 400})
+        }
+
+        const resData:NewPortfolioResponse = {
             status: 'error',
+            requestType: 'Create Portfolio',
+            requestBody: body,
             messages: 'Something whent wrong.',
-            datatType: 'Error',
-            data: e
-        }, {status: 500})
+            dataType: 'Error',
+            data: e as Error
+        }
+        await saveResponseToSubmittion(resData, userId)
+        return Response.json(resData, {status: 500})
     }
 }

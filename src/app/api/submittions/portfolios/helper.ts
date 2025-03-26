@@ -1,6 +1,34 @@
 import { UUID } from "mongodb";
-import { custom, z } from "zod";
+import { custom, z, ZodError } from "zod";
 import { v4 as uuidv4 } from 'uuid';
+import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
+import { CairoCustomer } from "@/lib/cairo.type";
+
+
+export interface BaseNewPortfolioResponse {
+    status: 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
+    requestType: 'Create Portfolio';
+    requestBody: CustomerAccountPortfolioCreationPayload;
+    messages: string;
+}
+
+export type NewPortfolioResponse =
+    | (BaseNewPortfolioResponse & {
+          dataType: 'SequentialCustomerAccountPortfolioCreatioResult';
+          data: SequentialCustomerAccountPortfolioCreatioResult;
+      })
+    | (BaseNewPortfolioResponse & {
+          dataType: 'CairoCustomer';
+          data: CairoCustomer;
+      })
+    | (BaseNewPortfolioResponse & {
+        dataType: 'Error';
+        data: Error;
+    })
+    | (BaseNewPortfolioResponse & {
+        dataType: 'ZodError';
+        data: ZodError;
+    });
 
 export const customerAccountPortfolioCreationPayloadSchema = z.object({
     firstname: z.string({

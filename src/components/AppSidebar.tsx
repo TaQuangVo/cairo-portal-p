@@ -11,7 +11,11 @@ import {
   Bug,
   MailIcon,
   PlusCircleIcon,
-  Boxes
+  Boxes,
+  EllipsisVertical,
+  RectangleEllipsis,
+  Ellipsis, 
+  FilePenLine
 } from "lucide-react"
 
 import { NavSection } from "@/components/NavMain"
@@ -27,84 +31,65 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
+import { useRouter } from 'next/navigation'
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  mainActionButton:{
-    mainButton: {
-        title: 'Quick Create',
-        icon: PlusCircleIcon,
-        onClick: () => {console.log('hello main action')}
-    },
-    secondaryButton: {
-        title: '',
-        icon: MailIcon,
-        onClick: () => {console.log('hello secondary button')}
-    }
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: ListIcon,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: FolderIcon,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: UsersIcon,
-    },
-  ],
-  admin: [
-    {
-      title: "Users",
-      url: "/dashboard/users",
-      icon: UsersIcon,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: FolderIcon,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Get Help",
-      url: "#",
-      icon: HelpCircleIcon,
-    },
-    {
-      title: "Report",
-      url: "#",
-      icon: Bug,
-    },
-  ],
-}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter()
+
+  const data = {
+    user: {
+      name: "shadcn",
+      email: "m@example.com",
+      avatar: "/avatars/shadcn.jpg",
+    },
+    mainActionButton:{
+      mainButtonOptions: [{
+          title: 'New Portfolio',
+          icon: PlusCircleIcon,
+          onClick: () => {router.push('/dashboard/portfolios')},
+          value: 'Quick Create'
+      },{
+        title: 'Update Portfolio',
+        icon: FilePenLine,
+        onClick: () => {console.log('hello main action')},
+        value: 'Update Portfolio'
+    }],
+      secondaryButton: {
+          title: '',
+          icon: Ellipsis,
+          onClick: () => {console.log('hello secondary button')},
+          onChange: (val:string) => {console.log('hello secondary button')}
+      }
+    },
+    navMain: [
+      {
+        title: "My Submittions",
+        url: "/dashboard/submittions",
+        icon: ListIcon,
+      },
+    ],
+    admin: [
+      {
+        title: "Users",
+        url: "/dashboard/users",
+        icon: UsersIcon,
+      },
+    ],
+    navSecondary: [
+      {
+        title: "Get Help",
+        url: "#",
+        icon: HelpCircleIcon,
+      },
+      {
+        title: "Report",
+        url: "#",
+        icon: Bug,
+      },
+    ],
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
