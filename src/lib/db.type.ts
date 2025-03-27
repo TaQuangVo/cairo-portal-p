@@ -49,3 +49,10 @@ export type DBPortfolioSubmittions =
         dataType: 'ZodError';
         data: ZodError;
     });
+
+
+export interface DBCounter {
+    _id: string;
+    counter: number;
+    type: 'portfolio';
+}

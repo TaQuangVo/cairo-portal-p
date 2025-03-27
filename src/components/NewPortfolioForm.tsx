@@ -77,6 +77,9 @@ export function NewPortfolioForm() {
 
         setShowSubmittionModule(open)
         setSubmittionResult(null)
+        if(submittionResult?.status === 'success'){
+            form.reset()
+        }
     }
 
     async function onSubmit(data: UserPortfolioFormValues): Promise<void> {
@@ -221,7 +224,10 @@ export function NewPortfolioForm() {
                             )} />
 
                     <div className="flex flex-col items-end mt-20 mb-9">
-                        <Button type="submit" disabled={!form.formState.isValid}>Create New Portfolio</Button>
+                        <div>
+                            <Button type="button" variant='outline' className="mr-4" disabled={!form.formState.isDirty} onClick={()=>form.reset()}>Clear formular</Button>
+                            <Button type="submit" disabled={!form.formState.isValid}>Create New Portfolio</Button>
+                        </div>
                         {
                             !form.formState.isValid &&
                             <p className="text-sm mt-3">Fill in all required fields to continues!</p>

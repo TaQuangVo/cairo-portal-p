@@ -15,11 +15,6 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Switch } from "./ui/switch";
 
-const reportFormFieldSchema = z.object({
-    message: z.string().min(1, "Message is required."),
-})
-type ReportFormFieldValue = z.infer<typeof reportFormFieldSchema>
-
 
 export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress }: { data: NewPortfolioResponse | null, onCloseButtonPress: () => void }) {
     if (!data) {
@@ -59,6 +54,7 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
             toast.success("Report sent sussessfully", { icon: <CircleCheck />})  
         } else {
             toast.error("Failed to send report, something went wrong!", { icon: <CircleCheck />})
+            setSendingReport(false)
         }
     }
 
@@ -128,7 +124,7 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
                                         </Label>
                                         <Input
                                             id="link"
-                                            defaultValue={portfolioCreation.response?.data?.portfolioCode}
+                                            defaultValue={portfolioCreation.response?.data?.portfolioDescription}
                                             readOnly
                                         />
                                     </div>
@@ -152,7 +148,7 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
                                     </Alert>
                                     <Separator className="my-6" />
                                     <h3 className="text-md mt-6 font-semibold">Contact support (Recommended)</h3>
-                                    <p className="text-sm">Write some customer message and forward the failure to suport team.
+                                    <p className="text-sm">Write some custom message and forward the failure to suport team.
                                         The context of your portfolio creation request will be append to your message automaticly.</p>
                                     <Label htmlFor="message" className="mt-9 mb-2 text-start w-full">Message:</Label>
                                     <Textarea id='message' placeholder="Type your message here." value={reportMessage} onChange={(event)=>setReportMessage(event.currentTarget.value)}/>
@@ -162,7 +158,7 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
                                     </div>
                                     <span className="text-sm opacity-60">Email in your user settup will be used.</span>
                                     <DialogFooter>
-                                        <Button className="mt-7" onClick={sendReportData}>Send</Button>
+                                        <Button className="mt-7" onClick={sendReportData} disabled={sendingReport}>Send</Button>
                                     </DialogFooter>
                                 </>
                                 :

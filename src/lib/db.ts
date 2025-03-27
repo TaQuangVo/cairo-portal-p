@@ -1,9 +1,10 @@
 import { MongoClient, ServerApiVersion, Db, Collection } from "mongodb";
-import { DBPortfolioSubmittions, DBUser } from "./db.type";
+import { DBCounter, DBPortfolioSubmittions, DBUser } from "./db.type";
 
 const DB_NAME = "PeakAm";
 const USER_COLLECTION_NAME = "users";
 const SUBMITTION_COLLECTION_NAME = "submittions";
+const COUNTER_COLLECTION_NAME = "Counter";
 
 // Global variable to store the database client
 let client: MongoClient;
@@ -48,4 +49,20 @@ export async function getUserCollection(): Promise<Collection<DBUser>> {
 export async function getSubmittionCollection(): Promise<Collection<DBPortfolioSubmittions>> {
   const db = await getDB(DB_NAME);
   return db.collection<DBPortfolioSubmittions>(SUBMITTION_COLLECTION_NAME);
+}
+
+export async function getCurrentPortfolioCount(): Promise<number>{
+  const db = await getDB(DB_NAME);
+  const col = db.collection<DBCounter>(COUNTER_COLLECTION_NAME);
+
+  const currentCount = await col.findOneAndUpdate(
+    {type: 'portfolio'},
+    { $inc: { counter :1 } }
+  )
+
+  if(!currentCount){
+    throw new Error('Cannot get counter')
+  }
+
+  return currentCount.counter
 }

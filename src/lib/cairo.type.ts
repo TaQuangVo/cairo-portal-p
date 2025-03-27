@@ -112,5 +112,5 @@ export type CairoPortfolioCreationPayload = Required<Pick<CairoPortfolio,
     'scenarioCode'>> & 
     Partial<Pick<CairoPortfolio, 'modelPortfolioCode'>>;
 
-export type CairoPortfolioCreationResponse = Required<Pick<CairoPortfolio, 'portfolioCode'>>;
+export type CairoPortfolioCreationResponse = Required<Pick<CairoPortfolio, 'portfolioCode' | 'portfolioDescription'>>;
 

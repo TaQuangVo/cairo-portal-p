@@ -5,10 +5,14 @@ import { ZodError } from "zod"
 import { CairoCustomer } from "@/lib/cairo.type"
 import { getToken } from "next-auth/jwt"
 import { saveResponseToSubmittion } from "@/services/submittionService"
+import { getCurrentPortfolioCount } from "@/lib/db"
+import { definedPortfolioType } from "@/constant/portfolioType"
+import { PortfolioDataTable } from "@/components/SubmittionTable"
 
 
 // POST /api/submittions/portfolios
 export async function POST (req: NextRequest){
+    console.log(1)
     const token = await getToken({ req })
     if(!token){
         return Response.json({messages:'Not authenticated.'}, {status: 403})
@@ -30,6 +34,7 @@ export async function POST (req: NextRequest){
             data: e
         }, {status: 400})
     }
+    console.log(2)
 
     const requestBodies = payloadToRequestBodies(payload)
     const cairoCustomer = requestBodies.customer
@@ -37,6 +42,17 @@ export async function POST (req: NextRequest){
     const cairoPortfolio = requestBodies.portfolio
 
     try{
+        const currentCounter = await getCurrentPortfolioCount()
+
+
+        const portType = cairoPortfolio.portfolioTypeCode
+        const portfolioTypePrefix = portType in definedPortfolioType 
+                                ? definedPortfolioType[portType as keyof typeof definedPortfolioType] 
+                                : 'U'
+
+        cairoAccount.accountDescription = portfolioTypePrefix + currentCounter.toString()
+        cairoPortfolio.portfolioDescription = portfolioTypePrefix + currentCounter.toString()
+
         const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, ['SKIP CUSTOMER CREATION'])
 
         if(response.customerCreation.status !== 'success' && response.customerCreation.status !== 'skipped'){
@@ -90,6 +106,7 @@ export async function POST (req: NextRequest){
         await saveResponseToSubmittion(resData, userId)
         return Response.json(resData, {status: 201})
     } catch(e){
+        console.log(e)
         if((e as Error).name === 'Creation warning'){
             const resData:NewPortfolioResponse = {
                 status: 'warning',

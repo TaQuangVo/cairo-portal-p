@@ -94,7 +94,8 @@ export async function createPortfolio(portfolioCreationPayload: CairoPortfolioCr
   if(result.status == 'success' && result.data){
     try{
       const responseSimplified = {
-        portfolioCode: result.data.portfolioCode
+        portfolioCode: result.data.portfolioCode,
+        portfolioDescription: result.data.portfolioDescription
       }
       result.data = responseSimplified
       result.body = JSON.stringify(responseSimplified)
