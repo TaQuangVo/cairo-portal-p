@@ -100,10 +100,28 @@ export function NewPortfolioForm() {
         setIsLoading(false)
         console.log('/////response')
         console.log(response)
-        const responseData = await response.json()
+        let responseData;
+        const contentType = response.headers.get("content-type");
+
+        try {
+            if (contentType?.includes("application/json")) {
+                responseData = await response.json();
+                console.log("JSON Data:", responseData);
+            } else {
+                responseData = await response.text();
+                console.log("Text Data:", responseData);
+            }
+            throw new Error("Invalid response data type");
+        } catch (error) {
+            console.error("Failed to parse JSON:", error);
+            responseData = null;
+        }
+
         console.log(responseData)
         console.log('////response')
-        setSubmittionResult(responseData as NewPortfolioResponse)
+        if(!responseData && responseData !== null){
+            setSubmittionResult(responseData as NewPortfolioResponse)
+        }
 
         if (response.ok) {
             toast("Portfolio created successfully!")
