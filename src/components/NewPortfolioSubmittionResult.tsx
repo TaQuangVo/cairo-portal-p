@@ -184,6 +184,7 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
         )
     }
 
+    console.log(data)
     return (
         <>
             <DialogHeader>
@@ -193,21 +194,28 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                        Name
-                    </Label>
-                    <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="username" className="text-right">
-                        Username
-                    </Label>
-                    <Input id="username" defaultValue="@peduarte" className="col-span-3" />
-                </div>
+                <Alert className="mt-2">
+                    <CircleAlert color="orange" />
+                    <AlertTitle>Error! Failed to create portfolio.</AlertTitle>
+                    <AlertDescription>
+                        <ul className="list-disc list-inside">
+                            {
+                                data.dataType === 'ZodError' 
+                                ? 
+                                <>
+                                    {(data.data as z.ZodError).issues.map(issue => (
+                                        <li key={issue.path.join('.')}>{issue.message}</li>
+                                    ))}
+                                </>
+                                : <li>{(data.data as Error).message}</li>
+
+                            }
+                        </ul>
+                    </AlertDescription>
+                </Alert>
             </div>
             <DialogFooter>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" onClick={onCloseButtonPress}>Close</Button>
             </DialogFooter>
         </>
     )
