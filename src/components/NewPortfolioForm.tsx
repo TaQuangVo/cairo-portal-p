@@ -50,27 +50,33 @@ const userPortfolioSchema = z.object({
 
 type UserPortfolioFormValues = z.infer<typeof userPortfolioSchema>
 
+const formDefaultValues = {
+    firstname: "",
+    surname: "",
+    personalNumber: "",
+    address: "",
+    address2: "",
+    postalCode: "",
+    city: "",
+    mobile: "",
+    emailAddress: "",
+    portfolioTypeCode: undefined,
+    modelPortfolioCode: "",
+}
+
 export function NewPortfolioForm() {
     const [showSubmittionModule, setShowSubmittionModule] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [submittionResult, setSubmittionResult] = useState<NewPortfolioResponse|null>(null)
     const form = useForm<UserPortfolioFormValues>({
         resolver: zodResolver(userPortfolioSchema),
-        defaultValues: {
-            firstname: "",
-            surname: "",
-            personalNumber: "",
-            address: "",
-            address2: "",
-            postalCode: "",
-            city: "",
-            mobile: "",
-            emailAddress: "",
-            portfolioTypeCode: undefined,
-            modelPortfolioCode: "",
-        },
+        defaultValues: formDefaultValues,
         mode: "onChange",
     })
+
+    function resetForm() {
+        form.reset({...formDefaultValues, portfolioTypeCode:undefined})
+    }
 
     function onCloseModule(open: boolean) {
         if(isLoading) return
@@ -78,7 +84,7 @@ export function NewPortfolioForm() {
         setShowSubmittionModule(open)
         setSubmittionResult(null)
         if(submittionResult?.status === 'success'){
-            form.reset()
+            resetForm
         }
     }
 
@@ -198,7 +204,7 @@ export function NewPortfolioForm() {
                             <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Portfolio Type*</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select portfolio type" />
@@ -225,7 +231,7 @@ export function NewPortfolioForm() {
 
                     <div className="flex flex-col items-end mt-20 mb-9">
                         <div>
-                            <Button type="button" variant='outline' className="mr-4" disabled={!form.formState.isDirty} onClick={()=>form.reset()}>Clear formular</Button>
+                            <Button type="button" variant='outline' className="mr-4" disabled={!form.formState.isDirty} onClick={()=>resetForm()}>Clear formular</Button>
                             <Button type="submit" disabled={!form.formState.isValid}>Create New Portfolio</Button>
                         </div>
                         {
