@@ -123,6 +123,7 @@ export function NewPortfolioForm() {
         }
 
         if(response.status === 504){
+            setShowSubmittionModule(false)
             toast("Request timed out. (Cairo took too long to respond).")
             return
         }
