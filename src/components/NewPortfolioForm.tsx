@@ -98,8 +98,8 @@ export function NewPortfolioForm() {
         })
 
         setIsLoading(false)
-        console.log('/////response')
-        console.log(response)
+        //console.log('/////response')
+        //console.log(response)
         let responseData;
         const contentType = response.headers.get("content-type");
 
@@ -111,16 +111,20 @@ export function NewPortfolioForm() {
                 responseData = await response.text();
                 console.log("Text Data:", responseData);
             }
-            throw new Error("Invalid response data type");
         } catch (error) {
             console.error("Failed to parse JSON:", error);
             responseData = null;
         }
 
-        console.log(responseData)
-        console.log('////response')
+        //console.log(responseData)
+        //console.log('////response')
         if(!responseData && responseData !== null){
             setSubmittionResult(responseData as NewPortfolioResponse)
+        }
+
+        if(response.status === 504){
+            toast("Request timed out. (Cairo took too long to respond).")
+            return
         }
 
         if (response.ok) {
