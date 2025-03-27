@@ -98,7 +98,11 @@ export function NewPortfolioForm() {
         })
 
         setIsLoading(false)
+        console.log('/////response')
+        console.log(response)
         const responseData = await response.json()
+        console.log(responseData)
+        console.log('////response')
         setSubmittionResult(responseData as NewPortfolioResponse)
 
         if (response.ok) {
