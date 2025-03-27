@@ -33,7 +33,6 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
   }, []);
 
   const startTransaction = async () => {
-    console.log('start transction')
     try{
       const response  = await fetch("/api/auth/bankId/"+transactionId+"/start", {
           method: "GET",
@@ -52,7 +51,6 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
   }
 
   const getTransaction = async () => {
-    console.log('get transction')
     try{
       const response  = await fetch("/api/auth/bankId/"+transactionId, {
           method: "GET",

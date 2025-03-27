@@ -66,11 +66,7 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     let existingCustomerCode: string | undefined
 
     // if customer alredy exist and not skipped
-    console.log(getCustomerResult.status === 'success')
-    console.log(!getCustomerResult.response?.data?.results[0])
-    console.log(!muteWarning.includes('SKIP CUSTOMER CREATION'))
     if(getCustomerResult.status === 'success' && getCustomerResult.response?.data?.results[0] && !muteWarning.includes('SKIP CUSTOMER CREATION')){
-        console.log('hello')
         throw new CreationWaring<CairoCustomer>('Customer with personal number ' + customerCreationPayload.organizationId + ' already exist.', 'SKIP CUSTOMER CREATION', getCustomerResult.response!.data!.results[0])
 
     // if customer alredy exist and skipped
@@ -105,7 +101,6 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     result.accountCreation.response = accountCreationResponse
 
     if(accountCreationResponse.status !== 'success'){
-        console.log(accountCreationResponse)
         return result
     }
 

@@ -32,10 +32,8 @@ export function NavSection({
       value: string
     }[]
     secondaryButton?: {
-      title: string
       icon?: LucideIcon
-      onClick: () => void,
-      onChange: (val:string) => void}
+    }
     }
   }
 ) {

@@ -1,8 +1,9 @@
 import { NewPortfolioResponse } from '@/app/api/submittions/portfolios/helper';
+import { DBUser } from '@/lib/db.type';
 import { transport } from '@/lib/mailer';
 import Mail from 'nodemailer/lib/mailer';
 
-export async function sendSubmittionFailureReportMail(submittionResult:NewPortfolioResponse, userId:string){
+export async function sendSubmittionFailureReportMail(message: string, submittionResult:NewPortfolioResponse, userId:string, ccMe:string | null | undefined, user:DBUser){
     const senderEmail = process.env.MY_EMAIL;
     if(!senderEmail){
         throw new Error('Sender email is not defined.')
@@ -11,15 +12,29 @@ export async function sendSubmittionFailureReportMail(submittionResult:NewPortfo
     const mailOptions: Mail.Options = {
         from: senderEmail,
         to: senderEmail,
-        // cc: email, (uncomment this line if you want to send a copy to the sender)
         subject: `Submittion Failure Report`,
         text: `
-Supmitted by: ${userId}
+Submitter:
+  Id: ${userId} 
+  Name: ${user.givenName} ${user.surname}
+  Personal number: ${user.personalNumber}
+  Email: ${user.email}
+  Phone: ${user.phoneNumber}
 
-Attatchment Data:
-${JSON.stringify(submittionResult, null, '\t')}
-        `,
+Message: 
+  ${message}`,
+        attachments: [
+          {
+            filename: 'submittionResult.json', // Name of the attachment
+            content: JSON.stringify(submittionResult, null, '\t'), // Convert JSON object to string
+            contentType: 'application/json' // MIME type for JSON files
+          }
+        ],
       };
+
+    if(ccMe && user.email){
+        mailOptions.cc = user.email;
+    }
 
     const result = await transport.sendMail(mailOptions)
     if(!result.accepted.includes(senderEmail)){

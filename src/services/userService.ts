@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getUserCollection } from "../lib/db";
-import { DBUser, UserCreate, UserUpdate } from "../lib/db.type";
+import { DBUser, UserCreate } from "../lib/db.type";
 
   
 export async function createUser(user: UserCreate): Promise<DBUser> {
@@ -22,7 +22,6 @@ export async function createUser(user: UserCreate): Promise<DBUser> {
 
         return newUser;
     } catch (error) {
-        console.log(error)
         throw new Error(`Failed to create user:  ${error instanceof Error ? error.message : error}`);
     }
 }

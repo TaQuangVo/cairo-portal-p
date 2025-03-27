@@ -35,8 +35,6 @@ export default function InputWithButton() {
       result: 'SUCCESS' | 'ERROR' | 'CANCEL' | 'FAILED' | 'RETRY', 
       data: TransactionResponseDTO | null
     ): Promise<void> => {
-      console.log(result)
-      console.log(data)
 
       // Handle different result cases
       if (result === 'CANCEL') {
@@ -58,7 +56,6 @@ export default function InputWithButton() {
               setError('Sign-in failed')
           }
           if (signInResult?.ok) {
-            console.log('Sign-in success')
             router.push('/')
           }
       }
@@ -89,7 +86,6 @@ export default function InputWithButton() {
         })
         if (userResponse.ok) {
             const data = await userResponse.json();  // This will parse the JSON body
-            console.log(data);  // Logs the parsed JSON object
         } else {
             setError('You are not registered in our system.');
             setDisableButton(false)
@@ -105,7 +101,6 @@ export default function InputWithButton() {
         }
 
         const data: NewTransactionResponse = await response.json();
-        console.log(data)
         setCurrentTransaction({
           id:data.id,
           status: 'new',
@@ -113,7 +108,6 @@ export default function InputWithButton() {
         })
 
         }catch(e){
-          console.log('Något gått fell')
           setDisableButton(false)
         }
     }

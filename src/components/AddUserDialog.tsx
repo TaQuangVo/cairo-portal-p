@@ -1,6 +1,7 @@
 "use client"
+import { useRouter } from "next/navigation";
 
-import { useForm } from "react-hook-form"
+import { ErrorOption, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
@@ -58,6 +59,7 @@ const userFormSchema = z.object({
 type UserFormValues = z.infer<typeof userFormSchema>
 
 export function AddUserDialog() {
+    const router = useRouter()
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userFormSchema),
         defaultValues: {
@@ -92,9 +94,20 @@ export function AddUserDialog() {
                     </pre>
                 ),
             })
-        }else{
+            router.refresh()
+        }else if (response.status == 409){
             const data = await response.json();
-            toast('Some thing gon wrong')
+            const error: ErrorOption = {
+                message:data.messages
+            }
+            form.setError('personalNumber', error);
+            toast(data.messages, {
+                description: (
+                    <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+                        <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+                    </pre>
+                ),
+            })
         }
     }
 

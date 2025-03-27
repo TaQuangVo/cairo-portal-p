@@ -1,22 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt"
+import { getToken } from "next-auth/jwt";
 
+const protectedRoutes: string[] = ["/protected", "/dashboard/**"];
+const adminRoutes: string[] = ["/dashboard/users"];
 
-const protectedRoutes = ["/protected", "/dashboard"];
+function matchesPattern(pathname: string, patterns: string[]): boolean {
+  return patterns.some((pattern) => {
+    const regexPattern = new RegExp(
+      "^" + pattern
+        .replace('/**', ".*")
+        .replace('/*', "[^/]*") + "$"
+    );
+    return regexPattern.test(pathname);
+  });
+}
 
-export default async function middleware(req: NextRequest) {
-  const token = await getToken({ req })
+export default async function middleware(req: NextRequest): Promise<NextResponse> {
+  const token = await getToken({ req }) as { role?: string } | null;
   const { pathname } = req.nextUrl;
 
-  const isProtected = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  if(pathname === '/login' && token) {
+  if (pathname === "/login" && token) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  if (isProtected && !token) {
+  if (matchesPattern(pathname, protectedRoutes) && !token) {
+    console.log("redirecting to login");
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  if (matchesPattern(pathname, adminRoutes) && (!token || token.role !== "admin")) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

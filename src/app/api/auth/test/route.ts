@@ -10,14 +10,10 @@ export async function GET (req: NextRequest){
     const token = await getToken({ req })
 
     const me = await fetchCustomerByPersonalNumber('20000507-4018')
-    console.log(me)
 
     const sc = await newTransaction();
     const st = await startTransaction(sc.id);
     const ge = await getTransaction(sc.id);
-
-    console.log('GETGE');
-    console.log(token);
 
     return Response.json({messages:'Data saved successfully!'}, {status: 201})
 }

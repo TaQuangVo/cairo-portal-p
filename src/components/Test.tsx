@@ -22,7 +22,6 @@ export default function Test() {
         })
         if (response.ok) {
             const data = await response.json();  // This will parse the JSON body
-            console.log(data);  // Logs the parsed JSON object
         } else {
             console.error('Error:', response.status);
         }
@@ -38,7 +37,6 @@ export default function Test() {
             method: "POST",
             body: JSON.stringify(user),
         })
-        console.log(response)
     }
     
     return (

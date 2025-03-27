@@ -2,22 +2,26 @@ import { NextRequest, NextResponse } from "next/server"
 import { NewPortfolioResponse } from "../submittions/portfolios/helper";
 import { getToken } from "next-auth/jwt"
 import { sendSubmittionFailureReportMail } from "@/services/emailService";
+import { getUserById } from "@/services/userService";
 
 
 export async function POST (req: NextRequest){
     const token = await getToken({ req })
-    const userId = '67e3dafa6b27e2b0d662bdad'
-    if(!userId){
-        throw new Error('User not authenticated')
+    if(!token){
+        return Response.json({messages:'Not authenticated.'}, {status: 403})
     }
 
     const body = await req.json()
 
     const type = body.type;
     const attachmentData = body.attachmentData
+    const message = body.message
+    const ccMe = body.ccMe
+
+    const user = await getUserById(token.id)
 
     if(type === 'Create Portfolio Submittion Failure'){
-        const isSent = await sendSubmittionFailureReportMail(attachmentData as NewPortfolioResponse, userId)
+        const isSent = await sendSubmittionFailureReportMail(message, attachmentData as NewPortfolioResponse, token.id, ccMe, user!)
         if(isSent){
             return Response.json({messages:'Mail sent successfully.'}, {status: 200})
         }

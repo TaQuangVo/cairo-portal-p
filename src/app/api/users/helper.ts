@@ -35,3 +35,16 @@ export function toUserCreate(body: any): UserCreate{
         phoneNumber: body.phoneNumber,
     }
 }
+
+
+export function verifyBodyUserCreate(body: any){
+    if(!body.personalNumber){
+        throw new Error('Personal number is required')
+    }
+    if(!body.isActive){
+        throw new Error('isActive is required')
+    }
+    if(!body.role){
+        throw new Error('Role is required')
+    }
+}

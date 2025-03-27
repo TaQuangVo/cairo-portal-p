@@ -2,20 +2,15 @@
 
 import * as React from "react"
 import {
-  BarChartIcon,
-  FolderIcon,
   HelpCircleIcon,
-  LayoutDashboardIcon,
   ListIcon,
   UsersIcon,
   Bug,
-  MailIcon,
   PlusCircleIcon,
   Boxes,
-  EllipsisVertical,
-  RectangleEllipsis,
   Ellipsis, 
-  FilePenLine
+  FilePenLine,
+  House
 } from "lucide-react"
 
 import { NavSection } from "@/components/NavMain"
@@ -32,10 +27,18 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { useRouter } from 'next/navigation'
-
+import { useSession } from "next-auth/react"
+import { Session } from "next-auth"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter()
+  const { data: session } = useSession()
+
+  const [ sessionData, setSessionData ] = React.useState<Session | null>(null)
+  React.useEffect(() => {
+    setSessionData(session) // prevent hidration error
+  }, [sessionData])
+
 
   const data = {
     user: {
@@ -52,14 +55,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },{
         title: 'Update Portfolio.',
         icon: FilePenLine,
-        onClick: () => {router.push('/dashboard/not-implemented')},
+        onClick: () => {router.push('/dashboard/not-implemented?titleParam=Update Portfolio')},
         value: 'Update Portfolio'
     }],
       secondaryButton: {
-          title: '',
           icon: Ellipsis,
-          onClick: () => {console.log('hello secondary button')},
-          onChange: (val:string) => {console.log('hello secondary button')}
       }
     },
     navMain: [
@@ -69,7 +69,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: ListIcon,
       },
     ],
-    admin: [
+     admin: [
       {
         title: "Users",
         url: "/dashboard/users",
@@ -79,13 +79,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     navSecondary: [
       {
         title: "Get Help",
-        url: "/dashboard/not-implemented",
+        url: "/dashboard/not-implemented?titleParam=Get Help",
         icon: HelpCircleIcon,
       },
       {
         title: "Report",
-        url: "/dashboard/not-implemented",
+        url: "/dashboard/not-implemented?titleParam=Report",
         icon: Bug,
+      },
+      {
+        title: "Landing page",
+        url: "/",
+        icon: House,
       },
     ],
   }
@@ -109,7 +114,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavSection items={data.navMain} actionButton={data.mainActionButton}/>
-        <NavSection items={data.admin}  title="Admin"/>
+        {
+          sessionData?.user.role && sessionData?.user.role === 'admin' && <NavSection items={data.admin}  title="Admin"/>
+        }
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

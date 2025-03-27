@@ -76,6 +76,7 @@ export function NewPortfolioForm() {
         if(isLoading) return
 
         setShowSubmittionModule(open)
+        setSubmittionResult(null)
     }
 
     async function onSubmit(data: UserPortfolioFormValues): Promise<void> {
@@ -92,16 +93,9 @@ export function NewPortfolioForm() {
         setSubmittionResult(responseData as NewPortfolioResponse)
 
         if (response.ok) {
-
-            toast("User Portfolio added successfully!", {
-                description: (
-                    <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                        <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-                    </pre>
-                ),
-            })
+            toast("Portfolio created successfully!")
         } else {
-            toast("Something went wrong!")
+            toast("Failed to create portfolio!")
         }
     }
 
@@ -237,7 +231,7 @@ export function NewPortfolioForm() {
             </Form>
             <Dialog open={showSubmittionModule} onOpenChange={onCloseModule}>
                 <DialogContent className="sm:max-w-[525px]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
-                    <NewPortfolioSubmittionResult data={submittionResult} onCloseButtonPress={() => setShowSubmittionModule(false)}/>
+                    <NewPortfolioSubmittionResult data={submittionResult} onCloseButtonPress={() => onCloseModule(false)}/>
                 </DialogContent>
             </Dialog>
         </>

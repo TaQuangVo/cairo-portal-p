@@ -1,7 +1,5 @@
 'use client'
 import {
-  BellIcon,
-  CreditCardIcon,
   LogOutIcon,
   MoreVerticalIcon,
   UserCircleIcon,
@@ -84,7 +82,7 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href='/dashboard/not-implemented'>
+              <Link href='/dashboard/not-implemented?titleParam=Account'>
                 <DropdownMenuItem>
                   <UserCircleIcon />
                   Account

@@ -5,11 +5,11 @@ import { getSubmittions } from "@/services/submittionService";
 
 export async function GET (req: NextRequest){
     const token = await getToken({ req })
-    const userId = token?.id;
-    const userRole = token?.role;
-    if(userId === undefined || userRole === undefined){
-        throw new Error('User not authenticated')
+    if(!token){
+        return Response.json({messages:'Not authenticated.'}, {status: 403})
     }
+    const userId = token.id;
+    const userRole = token.role;
 
     const validStatuses: DBBasePortfolioSubmittions["status"][] = [
         "failed",
@@ -22,16 +22,20 @@ export async function GET (req: NextRequest){
     // Extract query parameters and apply defaults
     const { searchParams } = req.nextUrl;
     const personalNumber = searchParams.get("personalNumber");
-    const userIdParam = searchParams.get("userId");
+    let userIdParam = searchParams.get("userId");
     const statusParam = searchParams.get("status") as DBBasePortfolioSubmittions["status"] | null;
     const page = parseInt(searchParams.get("page") || "1", 10); // Default page 1
     const limit = parseInt(searchParams.get("limit") || "20", 10); // Default limit 20
 
+    // If the user is not an admin, they can only view their own submittions
     if(userRole !== 'admin' && userIdParam !== userId){
         return Response.json({
             status: 'success',
             data: [] 
         })
+    }
+    if(userRole !== 'admin'){
+        userIdParam = userId;
     }
 
     // Validate the status, ignore if invalid

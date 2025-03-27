@@ -10,8 +10,18 @@ import { CircleAlert, CircleCheck, CircleX, Copy, Terminal } from "lucide-react"
 import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
 import { Textarea } from "./ui/textarea";
 import { Separator } from "@/components/ui/separator"
+import { useState } from "react";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Switch } from "./ui/switch";
 
-export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress }: { data: NewPortfolioResponse | null, onCloseButtonPress: ()=>void}) {
+const reportFormFieldSchema = z.object({
+    message: z.string().min(1, "Message is required."),
+})
+type ReportFormFieldValue = z.infer<typeof reportFormFieldSchema>
+
+
+export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress }: { data: NewPortfolioResponse | null, onCloseButtonPress: () => void }) {
     if (!data) {
         return (
             <>
@@ -26,6 +36,30 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
                 </div>
             </>
         )
+    }
+
+    const [reportMessage, setReportMessage] = useState('');
+    const [sendingReport, setSendingReport] = useState(false);
+    const [ccMe, setCcMe] = useState(false);
+    
+
+    async function sendReportData() {
+        setSendingReport(true);
+        const response = await fetch("/api/reports", {
+            method: "POST",
+            body: JSON.stringify({
+                type: 'Create Portfolio Submittion Failure',
+                message: reportMessage,
+                attachmentData: data,
+                ccMe: ccMe 
+            }),
+        })
+
+        if (response.ok) {
+            toast.success("Report sent sussessfully", { icon: <CircleCheck />})  
+        } else {
+            toast.error("Failed to send report, something went wrong!", { icon: <CircleCheck />})
+        }
     }
 
 
@@ -98,7 +132,7 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
                                             readOnly
                                         />
                                     </div>
-                                    <Button type="submit" size="sm" className="px-3" onClick={()=>navigator.clipboard.writeText(portfolioCreation.response?.data?.portfolioCode ? portfolioCreation.response?.data?.portfolioCode : '')}>
+                                    <Button type="submit" size="sm" className="px-3" onClick={() => navigator.clipboard.writeText(portfolioCreation.response?.data?.portfolioCode ? portfolioCreation.response?.data?.portfolioCode : '')}>
                                         <span className="sr-only">Copy</span>
                                         <Copy />
                                     </Button>
@@ -116,14 +150,19 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
                                             </>
                                         </AlertDescription>
                                     </Alert>
-                                    <Separator className="my-6"/>
+                                    <Separator className="my-6" />
                                     <h3 className="text-md mt-6 font-semibold">Contact support (Recommended)</h3>
-                                    <p className="text-sm">Write some customer message and forward the failure to suport team. 
+                                    <p className="text-sm">Write some customer message and forward the failure to suport team.
                                         The context of your portfolio creation request will be append to your message automaticly.</p>
-                                    <Label htmlFor="message" className="mt-9 mb-2 text-start w-full">Additional message:</Label>
-                                    <Textarea id='message' placeholder="Type your message here." />
+                                    <Label htmlFor="message" className="mt-9 mb-2 text-start w-full">Message:</Label>
+                                    <Textarea id='message' placeholder="Type your message here." value={reportMessage} onChange={(event)=>setReportMessage(event.currentTarget.value)}/>
+                                    <div className="flex items-center space-x-2 mt-4">
+                                        <Switch id="ccMe" checked={ccMe} onCheckedChange={(e)=>setCcMe(e)}/>
+                                        <Label htmlFor="ccMe">Send me a coppy.</Label>
+                                    </div>
+                                    <span className="text-sm opacity-60">Email in your user settup will be used.</span>
                                     <DialogFooter>
-                                        <Button type="button" className="mt-7">Send</Button>
+                                        <Button className="mt-7" onClick={sendReportData}>Send</Button>
                                     </DialogFooter>
                                 </>
                                 :

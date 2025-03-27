@@ -5,7 +5,6 @@ import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper";
 
 
 export async function saveResponseToSubmittion(newPortfolioResponse: NewPortfolioResponse, createdBy:string): Promise<void> {
-    console.log('try to save')
     try {
         const submittionCol = await getSubmittionCollection();
 
@@ -16,14 +15,8 @@ export async function saveResponseToSubmittion(newPortfolioResponse: NewPortfoli
             createdBy: createdBy,
         };
 
-        const result = await submittionCol.insertOne(newSubmittion);
-        console.log('saved')
-
-        if (!result.acknowledged) {
-            console.log('Failed to save submittion for user')
-        }
+        await submittionCol.insertOne(newSubmittion);
     } catch (error) {
-        console.log('Failed to save submittion for user')
         console.log(error)
     }
 }
