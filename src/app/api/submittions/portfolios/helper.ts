@@ -65,11 +65,11 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
 
     mobile: z.string({
         required_error: "Mobile number is required",
-    }).min(1, { message: "Mobile number cannot be empty" }),
+    }).min(1, { message: "Mobile number cannot be empty" }).or(z.literal("")).optional(),
 
     emailAddress: z.string({
         required_error: "Email address is required",
-    }).email({ message: "Invalid email address format" }),
+    }).email({ message: "Invalid email address format" }).or(z.literal("")).optional(),
 });
 
 

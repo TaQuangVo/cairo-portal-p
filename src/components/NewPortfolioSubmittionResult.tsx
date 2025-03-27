@@ -65,6 +65,7 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
         const customerCreation = stepResult.customerCreation
         const accountCreation = stepResult.accountCreation
         const portfolioCreation = stepResult.portfolioCreation
+        console.log(stepResult)
 
         return (
             <>

@@ -26,7 +26,7 @@ export async function POST (req: NextRequest){
         payload = customerAccountPortfolioCreationPayloadSchema.parse(body)
     }catch(e){
         return Response.json({
-            status: 'failed',
+            status: 'error',
             requestType: 'Create Portfolio',
             request: body,
             messages:(e as ZodError).issues.map(issues => (issues.message)),
@@ -54,6 +54,7 @@ export async function POST (req: NextRequest){
         cairoPortfolio.portfolioDescription = portfolioTypePrefix + currentCounter.toString()
 
         const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, ['SKIP CUSTOMER CREATION'])
+        console.log(response)
 
         if(response.customerCreation.status !== 'success' && response.customerCreation.status !== 'skipped'){
             const resData:NewPortfolioResponse = {
