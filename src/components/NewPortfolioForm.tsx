@@ -253,8 +253,7 @@ export function NewPortfolioForm() {
                                         </FormControl>
                                         <SelectContent>
                                             <SelectItem value="ISK">ISK</SelectItem>
-                                            <SelectItem value="KF">KF</SelectItem>
-                                            <SelectItem value="AF">AF</SelectItem>
+                                            <SelectItem value="AF">AF(fail)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
