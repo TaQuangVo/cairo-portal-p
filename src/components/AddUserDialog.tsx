@@ -37,7 +37,7 @@ import { convertPersonalNumber } from "@/utils/stringUtils"
 
 const userFormSchema = z.object({
     personalNumber: z.string()
-        .min(10, { message: "Personal number must be at least 10 characters." })
+        .min(8, { message: "Personal number must be at least 10 characters." })
         .refine((value) => {
             try {
                 convertPersonalNumber(value)

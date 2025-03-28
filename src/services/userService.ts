@@ -47,7 +47,6 @@ export async function getUserByPersonalNumber(personalNumber: string): Promise<D
 
         return user;
     } catch (error) {
-        console.error("Error fetching user by ID:", error);
         throw new Error(`Failed to fetch user by ID: ${error instanceof Error ? error.message : error}`);
     }
 }

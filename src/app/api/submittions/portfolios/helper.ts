@@ -2,7 +2,8 @@ import { UUID } from "mongodb";
 import { custom, z, ZodError } from "zod";
 import { v4 as uuidv4 } from 'uuid';
 import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
-import { CairoCustomer } from "@/lib/cairo.type";
+import { CairoAccount, CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload } from "@/lib/cairo.type";
+import { convertPersonalNumber } from "@/utils/stringUtils";
 
 
 export interface BaseNewPortfolioResponse {
@@ -41,7 +42,17 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
 
     personalNumber: z.string({
         required_error: "Personal number is required",
-    }).min(1, { message: "Personal number cannot be empty" }),
+    }).min(8, { message: "Personal number must be at least 10 characters." })
+    .refine((value) => {
+        try {
+            convertPersonalNumber(value)
+            return true
+        }catch (error) {
+            return false
+        }
+    }, {
+        message: "Wrong Swedish personal number format.",
+    }),
 
     portfolioTypeCode: z.string({
         required_error: "Portfolio type code is required",
@@ -121,6 +132,10 @@ export function payloadToRequestBodies(payload: CustomerAccountPortfolioCreation
             scenarioCode: 'LAST',
             modelPortfolioCode: payload.modelPortfolioCode,
         }
+    } as {
+        customer: CairoCustomerCreationPayload;
+        account: CairoAccountCreationPayload;
+        portfolio: CairoPortfolioCreationPayload;
     }
 }
 

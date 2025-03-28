@@ -1,4 +1,8 @@
-export function convertPersonalNumber(input: string): string {
+export function convertPersonalNumber(input: string | null | undefined): string {
+    if (!input) {
+      throw new Error("Personal number is missing.");
+    }
+
     // Helper to validate the date string in yyyymmdd format.
     function isValidDate(yyyymmdd: string): boolean {
       const year = parseInt(yyyymmdd.slice(0, 4), 10);

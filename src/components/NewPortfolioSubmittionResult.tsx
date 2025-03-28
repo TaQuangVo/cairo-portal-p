@@ -16,8 +16,8 @@ import { toast } from "sonner";
 import { Switch } from "./ui/switch";
 
 
-export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress }: { data: NewPortfolioResponse | null, onCloseButtonPress: () => void }) {
-    if (!data) {
+export default function NewPortfolioSubmittionResult({ data, error, onCloseButtonPress }: { data: NewPortfolioResponse | null, error: string | null, onCloseButtonPress: () => void }) {
+    if (!data && !error) {
         return (
             <>
                 <DialogHeader>
@@ -59,13 +59,14 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
     }
 
 
-    if (data.status == 'success' || data.status === 'partial failure' || data.status === 'failed') {
+
+
+    if (data && (data.status == 'success' || data.status === 'partial failure' || data.status === 'failed')) {
 
         const stepResult = data.data as SequentialCustomerAccountPortfolioCreatioResult
         const customerCreation = stepResult.customerCreation
         const accountCreation = stepResult.accountCreation
         const portfolioCreation = stepResult.portfolioCreation
-        console.log(stepResult)
 
         return (
             <>
@@ -184,39 +185,65 @@ export default function NewPortfolioSubmittionResult({ data, onCloseButtonPress 
         )
     }
 
-    console.log(data)
-    return (
-        <>
-            <DialogHeader>
-                <DialogTitle>Create New Portfolio</DialogTitle>
-                <DialogDescription>
-                    Make changes to your profile here. Click save when you're done.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-                <Alert className="mt-2">
-                    <CircleAlert color="orange" />
-                    <AlertTitle>Error! Failed to create portfolio.</AlertTitle>
-                    <AlertDescription>
-                        <ul className="list-disc list-inside">
-                            {
-                                data.dataType === 'ZodError' 
-                                ? 
-                                <>
-                                    {(data.data as z.ZodError).issues.map(issue => (
-                                        <li key={issue.path.join('.')}>{issue.message}</li>
-                                    ))}
-                                </>
-                                : <li>{(data.data as Error).message}</li>
+    if (data && data.status == 'error') {
+        return (
+            <>
+                <DialogHeader>
+                    <DialogTitle>Create New Portfolio</DialogTitle>
+                    <DialogDescription>
+                        Make changes to your profile here. Click save when you're done.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <Alert className="mt-2">
+                        <CircleAlert color="orange" />
+                        <AlertTitle>Error! Failed to create portfolio.</AlertTitle>
+                        <AlertDescription>
+                            <ul className="list-disc list-inside">
+                                {
+                                    data.dataType === 'ZodError' 
+                                    ? 
+                                    <>
+                                        {(data.data as z.ZodError).issues.map(issue => (
+                                            <li key={issue.path.join('.')}>{issue.message}</li>
+                                        ))}
+                                    </>
+                                    : <li>{data.messages}</li>
 
-                            }
-                        </ul>
-                    </AlertDescription>
-                </Alert>
-            </div>
-            <DialogFooter>
-                <Button type="submit" onClick={onCloseButtonPress}>Close</Button>
-            </DialogFooter>
-        </>
+                                }
+                            </ul>
+                        </AlertDescription>
+                    </Alert>
+                </div>
+                <DialogFooter>
+                    <Button type="submit" onClick={onCloseButtonPress}>Close</Button>
+                </DialogFooter>
+            </>
+        )
+    }
+
+    return (
+    <>
+        <DialogHeader>
+            <DialogTitle>Create New Portfolio</DialogTitle>
+            <DialogDescription>
+                Make changes to your profile here. Click save when you're done.
+            </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+            <Alert className="mt-2">
+                <CircleAlert color="orange" />
+                <AlertTitle>Error! Failed to create portfolio.</AlertTitle>
+                <AlertDescription>
+                    <ul className="list-disc list-inside">
+                        <li>{error}</li>
+                    </ul>
+                </AlertDescription>
+            </Alert>
+        </div>
+        <DialogFooter>
+            <Button type="submit" onClick={onCloseButtonPress}>Close</Button>
+        </DialogFooter>
+    </>
     )
 }

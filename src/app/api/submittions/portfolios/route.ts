@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { CustomerAccountPortfolioCreationPayload, customerAccountPortfolioCreationPayloadSchema, NewPortfolioResponse, payloadToRequestBodies} from "./helper"
 import { createCustomerAccountPortfolio, CreationWaring } from "@/services/cairoService"
 import { ZodError } from "zod"
@@ -7,7 +7,7 @@ import { getToken } from "next-auth/jwt"
 import { saveResponseToSubmittion } from "@/services/submittionService"
 import { getCurrentPortfolioCount } from "@/lib/db"
 import { definedPortfolioType } from "@/constant/portfolioType"
-import { PortfolioDataTable } from "@/components/SubmittionTable"
+import { convertPersonalNumber } from "@/utils/stringUtils"
 
 
 // POST /api/submittions/portfolios
@@ -34,10 +34,11 @@ export async function POST (req: NextRequest){
             data: e
         }, {status: 400})
     }
-    console.log(2)
+
+    const formatedPersonalNumber = convertPersonalNumber(payload.personalNumber)
 
     const requestBodies = payloadToRequestBodies(payload)
-    const cairoCustomer = requestBodies.customer
+    const cairoCustomer = {...requestBodies.customer, organizationId: formatedPersonalNumber}
     const cairoAccount = requestBodies.account
     const cairoPortfolio = requestBodies.portfolio
 

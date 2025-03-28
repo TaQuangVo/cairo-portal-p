@@ -68,6 +68,7 @@ export function NewPortfolioForm() {
     const [showSubmittionModule, setShowSubmittionModule] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [submittionResult, setSubmittionResult] = useState<NewPortfolioResponse|null>(null)
+    const [unexpectedError, setUnexpectedError] = useState<string|null>(null)
     const form = useForm<UserPortfolioFormValues>({
         resolver: zodResolver(userPortfolioSchema),
         defaultValues: formDefaultValues,
@@ -98,27 +99,25 @@ export function NewPortfolioForm() {
         })
 
         setIsLoading(false)
-        //console.log('/////response')
-        //console.log(response)
         let responseData;
         const contentType = response.headers.get("content-type");
+        //console.log('content type:' + contentType)
 
         try {
             if (contentType?.includes("application/json")) {
                 responseData = await response.json();
-                console.log("JSON Data:", responseData);
+                //console.log("JSON Data:", responseData);
             } else {
                 responseData = await response.text();
-                console.log("Text Data:", responseData);
+                //console.log("Text Data:", responseData);
             }
         } catch (error) {
             console.error("Failed to parse JSON:", error);
             responseData = null;
         }
 
-        //console.log(responseData)
-        //console.log('////response')
-        if(!responseData && responseData !== null){
+        if(responseData && responseData !== null){
+            //console.log('set data')
             setSubmittionResult(responseData as NewPortfolioResponse)
         }
 
@@ -270,7 +269,7 @@ export function NewPortfolioForm() {
             </Form>
             <Dialog open={showSubmittionModule} onOpenChange={onCloseModule}>
                 <DialogContent className="sm:max-w-[525px]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
-                    <NewPortfolioSubmittionResult data={submittionResult} onCloseButtonPress={() => onCloseModule(false)}/>
+                    <NewPortfolioSubmittionResult data={submittionResult} error={unexpectedError} onCloseButtonPress={() => onCloseModule(false)}/>
                 </DialogContent>
             </Dialog>
         </>
