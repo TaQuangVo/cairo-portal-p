@@ -102,37 +102,45 @@ export function NewPortfolioForm() {
         setIsLoading(false)
         let responseData;
         const contentType = response.headers.get("content-type");
-        //console.log('content type:' + contentType)
 
         try {
             if (contentType?.includes("application/json")) {
                 responseData = await response.json();
-                //console.log("JSON Data:", responseData);
             } else {
                 responseData = await response.text();
-                //console.log("Text Data:", responseData);
             }
         } catch (error) {
             console.error("Failed to parse JSON:", error);
             responseData = null;
         }
 
-        if(responseData && responseData !== null){
-            //console.log('set data')
+        if(typeof responseData === 'string'){
+            setUnexpectedError(responseData)
+            toast("Failed to create portfolio!")
+            return
+        }
+
+
+        if(responseData){
             setSubmittionResult(responseData as NewPortfolioResponse)
+
+            if (response.ok) {
+                toast("Portfolio created successfully!")
+            } else {
+                toast("Failed to create portfolio!")
+            }
+            return
         }
 
         if(response.status === 504){
             setShowSubmittionModule(false)
-            toast("Request timed out. (Cairo took too long to respond).")
+            setUnexpectedError("Request timed out. (Cairo might took too long to respond).")
+            toast("Request timed out. (Cairo took might too long to respond).")
             return
         }
 
-        if (response.ok) {
-            toast("Portfolio created successfully!")
-        } else {
-            toast("Failed to create portfolio!")
-        }
+        setUnexpectedError("unexpected Error while creating portfolio.")
+        toast("Failed to create portfolio!")
     }
 
     return (
