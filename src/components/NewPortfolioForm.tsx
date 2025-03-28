@@ -83,7 +83,7 @@ export function NewPortfolioForm() {
         if(isLoading) return
 
         if(submittionResult?.status === 'success'){
-            resetForm
+            resetForm()
         }
 
         setSubmittionResult(null)
