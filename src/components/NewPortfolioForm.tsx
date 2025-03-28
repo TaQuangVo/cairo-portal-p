@@ -114,28 +114,34 @@ export function NewPortfolioForm() {
             responseData = null;
         }
 
+        if(response.status === 504){
+            setShowSubmittionModule(false)
+            setUnexpectedError("Request timed out. (Cairo might took too long to respond).")
+            toast("Request timed out. (Cairo took might too long to respond).")
+            return
+        }
+
         if(typeof responseData === 'string'){
             setUnexpectedError(responseData)
             toast("Failed to create portfolio!")
             return
         }
 
-
         if(responseData){
             setSubmittionResult(responseData as NewPortfolioResponse)
+
+            if(!responseData.status){
+                setShowSubmittionModule(false)
+                setUnexpectedError("unexpected response from server.")
+                toast("unexpected response from server.")
+                return
+            }
 
             if (response.ok) {
                 toast("Portfolio created successfully!")
             } else {
                 toast("Failed to create portfolio!")
             }
-            return
-        }
-
-        if(response.status === 504){
-            setShowSubmittionModule(false)
-            setUnexpectedError("Request timed out. (Cairo might took too long to respond).")
-            toast("Request timed out. (Cairo took might too long to respond).")
             return
         }
 
