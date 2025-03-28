@@ -82,11 +82,12 @@ export function NewPortfolioForm() {
     function onCloseModule(open: boolean) {
         if(isLoading) return
 
-        setShowSubmittionModule(open)
-        setSubmittionResult(null)
         if(submittionResult?.status === 'success'){
             resetForm
         }
+
+        setSubmittionResult(null)
+        setShowSubmittionModule(open)
     }
 
     async function onSubmit(data: UserPortfolioFormValues): Promise<void> {

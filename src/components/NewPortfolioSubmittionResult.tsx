@@ -73,7 +73,7 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                 <DialogHeader>
                     <DialogTitle>Create New Portfolio</DialogTitle>
                     <DialogDescription>
-                        Make changes to your profile here. Click save when you're done.
+                        Create a finnancial portfolio for the customer.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="w-full">
