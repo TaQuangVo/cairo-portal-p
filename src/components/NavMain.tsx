@@ -64,7 +64,10 @@ export function NavSection({
                   defaultValue={selectedMainButton.value}
                   onValueChange={(val) => {
                     const newMainButton = actionButton.mainButtonOptions.find((btn) => btn.value === val)
-                    if (newMainButton) setSelectedMainButton(newMainButton)
+                    if (newMainButton){
+                      setSelectedMainButton(newMainButton)
+                      newMainButton.onClick()
+                    } 
                   }}
                 >
                   <SelectTrigger showDropdownIcons={false} className="">
