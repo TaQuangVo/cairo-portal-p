@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthSessionWraper from "@/components/AuthSessionWrapper";
 import { Toaster } from "@/components/ui/sonner"
+import Head from "next/head";
 
 
 
@@ -28,6 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <Head>
+        <link rel="icon" href="/skra_logo.png" />
+      </Head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
