@@ -9,6 +9,8 @@ import { getCurrentPortfolioCount } from "@/lib/db"
 import { definedPortfolioType } from "@/constant/portfolioType"
 import { convertPersonalNumber } from "@/utils/stringUtils"
 
+export const maxDuration = 2
+
 
 // POST /api/submittions/portfolios
 export async function POST (req: NextRequest){
