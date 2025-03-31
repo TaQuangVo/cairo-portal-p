@@ -24,6 +24,8 @@ import {
 import { useState } from "react"
 import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper"
 import NewPortfolioSubmittionResult from "./NewPortfolioSubmittionResult"
+import { modelPortfolioMap } from "@/constant/modelPortfolio"
+import { definedPortfolioType } from "@/constant/portfolioType"
 
 const userPortfolioSchema = z.object({
     firstname: z.string().min(2, "Firstname must be at least 2 characters."),
@@ -44,8 +46,12 @@ const userPortfolioSchema = z.object({
     city: z.string().min(2, "City must be at least 2 characters."),
     mobile: z.string().min(8, "Mobile number must be at least 8 characters.").or(z.literal("")).optional().nullable(),
     emailAddress: z.string().email("Invalid email format.").or(z.literal("")).optional().nullable(),
-    portfolioTypeCode: z.enum(["ISK", "KF", "AF"]),
-    modelPortfolioCode: z.string().optional().nullable(),
+    portfolioTypeCode: z.string().refine((value) => {
+        return definedPortfolioType.get(value) != undefined;
+    }, { message: "Invalid portfolio code." }),
+    modelPortfolioCode: z.string().refine((value) => {
+        return modelPortfolioMap.get(value) != undefined;
+    }, { message: "Invalid model portfolio code." }).or(z.literal('')).optional().nullable(),
 })
 
 type UserPortfolioFormValues = z.infer<typeof userPortfolioSchema>
@@ -64,11 +70,18 @@ const formDefaultValues = {
     modelPortfolioCode: "",
 }
 
+export type UnexpectedErrorType = {
+    messages: string
+    requestBody: UserPortfolioFormValues
+    response: any
+    responseBody: any
+}
+
 export function NewPortfolioForm() {
     const [showSubmittionModule, setShowSubmittionModule] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [submittionResult, setSubmittionResult] = useState<NewPortfolioResponse|null>(null)
-    const [unexpectedError, setUnexpectedError] = useState<string|null>(null)
+    const [unexpectedError, setUnexpectedError] = useState<UnexpectedErrorType|null>(null)
     const form = useForm<UserPortfolioFormValues>({
         resolver: zodResolver(userPortfolioSchema),
         defaultValues: formDefaultValues,
@@ -96,7 +109,7 @@ export function NewPortfolioForm() {
 
         const response = await fetch("/api/submittions/portfolios", {
             method: "POST",
-            body: JSON.stringify(data),
+            body: JSON.stringify({...data, personalNumber: convertPersonalNumber(data.personalNumber)}),
         })
 
         setIsLoading(false)
@@ -116,13 +129,23 @@ export function NewPortfolioForm() {
 
         if(response.status === 504){
             setShowSubmittionModule(false)
-            setUnexpectedError("Request timed out. (Cairo might took too long to respond).")
+            setUnexpectedError( {
+                messages:"Request timed out. (Cairo might took too long to respond).",
+                requestBody: data,
+                response: response,
+                responseBody: responseData
+            })
             toast("Request timed out. (Cairo took might too long to respond).")
             return
         }
 
         if(typeof responseData === 'string'){
-            setUnexpectedError(responseData)
+            setUnexpectedError({
+                messages: responseData,
+                requestBody: data,
+                response: response,
+                responseBody: responseData
+            })
             toast("Failed to create portfolio!")
             return
         }
@@ -132,8 +155,14 @@ export function NewPortfolioForm() {
 
             if(!responseData.status){
                 setShowSubmittionModule(false)
-                setUnexpectedError("unexpected response from server.")
-                toast("unexpected response from server.")
+                setUnexpectedError(
+                    {
+                        messages: "unexpected response from server.",
+                        requestBody: data,
+                        response: response,
+                        responseBody: responseData
+                    })
+                toast("Unexpected response from server.")
                 return
             }
 
@@ -145,7 +174,12 @@ export function NewPortfolioForm() {
             return
         }
 
-        setUnexpectedError("unexpected Error while creating portfolio.")
+        setUnexpectedError({
+            messages: "unexpected Error while creating portfolio.",
+            requestBody: data,
+            response: response,
+            responseBody: responseData
+        })
         toast("Failed to create portfolio!")
     }
 
@@ -242,32 +276,46 @@ export function NewPortfolioForm() {
                     <Separator />
 
                     {/* Portfolio Configuration Section */}
-                            <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Portfolio Type*</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select portfolio type" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="ISK">ISK</SelectItem>
-                                            <SelectItem value="AF">AF(fail)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="modelPortfolioCode" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Model Portfolio Code (Optional)</FormLabel>
+                        <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Portfolio Type*</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
                                     <FormControl>
-                                        <Input placeholder="Enter model portfolio code" {...field} value={field.value ?? ""} />
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select portfolio type" />
+                                        </SelectTrigger>
                                     </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
+                                    <SelectContent>
+                                        {
+                                            [...definedPortfolioType.entries()].map(([key, value]) => {
+                                                return <SelectItem key={value.id} value={key}>{key}</SelectItem>
+                                            })
+                                        }
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="modelPortfolioCode" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Model Portfolio</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select model portfolio" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent className="max-h-70">
+                                        {
+                                            [...modelPortfolioMap.entries()].map(([key, value]) => {
+                                                return <SelectItem key={value} value={key}>{key}</SelectItem>
+                                            })
+                                        }
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
 
                     <div className="flex flex-col items-end mt-20 mb-9">
                         <div>

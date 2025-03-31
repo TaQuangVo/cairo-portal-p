@@ -1,8 +1,5 @@
 import { NewPortfolioForm } from "@/components/NewPortfolioForm";
 import { SiteHeader } from "@/components/SiteHeader";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { UserDataTable } from "@/components/UserDateTable";
 import { getUsers } from "@/services/userService";
 
 export default async function Page() {

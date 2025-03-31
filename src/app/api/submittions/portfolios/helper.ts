@@ -97,7 +97,7 @@ export function payloadToRequestBodies(payload: CustomerAccountPortfolioCreation
             regionCode: 'SE',
             languageCode: 'SV',
             organizationId: payload.personalNumber,
-            managerCode: 'daniel.johansson',
+            managerCode: 'daniel.johansson1',
             customerContacts: [
                 {
                     customerCode: customerCode,

@@ -12,7 +12,6 @@ import { convertPersonalNumber } from "@/utils/stringUtils"
 
 // POST /api/submittions/portfolios
 export async function POST (req: NextRequest){
-    console.log(1)
     const token = await getToken({ req })
     if(!token){
         return Response.json({messages:'Not authenticated.'}, {status: 403})
@@ -47,15 +46,25 @@ export async function POST (req: NextRequest){
 
 
         const portType = cairoPortfolio.portfolioTypeCode
-        const portfolioTypePrefix = portType in definedPortfolioType 
-                                ? definedPortfolioType[portType as keyof typeof definedPortfolioType] 
-                                : 'U'
+        const portfolioTypeData = definedPortfolioType.get(portType);
+        if(!portfolioTypeData){
+            const resData:NewPortfolioResponse = {
+                status: 'error',
+                requestType: 'Create Portfolio',
+                requestBody: body,
+                messages: 'Portfolio type is invalid, selected: ' + portType + '.',
+                dataType: 'Error',
+                data: new Error('Portfolio type is invalid')
+            }
+            await saveResponseToSubmittion(resData, userId)
+            return Response.json(resData, {status: 400})
+        }
 
+        const portfolioTypePrefix = portfolioTypeData.prefix ?? 'U';
         cairoAccount.accountDescription = portfolioTypePrefix + currentCounter.toString()
         cairoPortfolio.portfolioDescription = portfolioTypePrefix + currentCounter.toString()
 
         const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, ['SKIP CUSTOMER CREATION'])
-        console.log(response)
 
         if(response.customerCreation.status !== 'success' && response.customerCreation.status !== 'skipped'){
             const resData:NewPortfolioResponse = {

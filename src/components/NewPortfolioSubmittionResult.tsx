@@ -14,38 +14,23 @@ import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Switch } from "./ui/switch";
+import { Accordion, AccordionContent, AccordionTrigger } from "./ui/accordion";
+import { AccordionItem } from "@radix-ui/react-accordion";
+import { UnexpectedErrorType } from "./NewPortfolioForm";
 
-
-export default function NewPortfolioSubmittionResult({ data, error, onCloseButtonPress }: { data: NewPortfolioResponse | null, error: string | null, onCloseButtonPress: () => void }) {
-    if (!data && !error) {
-        return (
-            <>
-                <DialogHeader>
-                    <DialogTitle>Create New Portfolio</DialogTitle>
-                    <DialogDescription>
-                        Make changes to your profile here. Click save when you're done.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="flex flex-col justify-center items-center h-50 w-full">
-                    <ClipLoader />
-                </div>
-            </>
-        )
-    }
-
+function ContactSuportForm({data, error, defaultOpen, title, onCloseButtonPress}:{data:NewPortfolioResponse | null, error:UnexpectedErrorType | null, defaultOpen: boolean, title: string, onCloseButtonPress: ()=>void}){
     const [reportMessage, setReportMessage] = useState('');
-    const [sendingReport, setSendingReport] = useState(false);
     const [ccMe, setCcMe] = useState(false);
-    
+    const [sendingReport, setSendingReport] = useState(false)
+    const [shown, setShown] = useState(defaultOpen?'item-1':'');
 
-    async function sendReportData() {
-        setSendingReport(true);
+    async function onSendReportData() {
         const response = await fetch("/api/reports", {
             method: "POST",
             body: JSON.stringify({
                 type: 'Create Portfolio Submittion Failure',
                 message: reportMessage,
-                attachmentData: data,
+                attachmentData: data ? data : error,
                 ccMe: ccMe 
             }),
         })
@@ -58,7 +43,47 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
         }
     }
 
+    return (
+        <Accordion type="single" collapsible className="w-full" value={shown} onValueChange={setShown}>
+        <AccordionItem value="item-1">
+            <AccordionTrigger>{title}</AccordionTrigger>
+            <AccordionContent>
+                <p className="text-sm">Write some custom message and forward the failure to suport team.
+                    The context of your portfolio creation request will be appended to your message automaticly.</p>
+                <Label htmlFor="message" className="mt-9 mb-2 text-start w-full">Message:</Label>
+                <Textarea id='message' placeholder="Type your message here." value={reportMessage} onChange={(event)=>setReportMessage(event.currentTarget.value)}/>
+                <div className="flex items-center space-x-2 mt-4">
+                    <Switch id="ccMe" checked={ccMe} onCheckedChange={(e)=>setCcMe(e)}/>
+                    <Label htmlFor="ccMe">Send me a coppy.</Label>
+                </div>
+                <span className="text-sm opacity-60">Email in your user settup will be used.</span>
+                <DialogFooter>
+                    <Button type="button" variant="outline" className="mt-7" onClick={onCloseButtonPress}>Close</Button>
+                    <Button className="mt-7" onClick={onSendReportData} disabled={sendingReport}>Send report</Button>
+                </DialogFooter>
+            </AccordionContent>
+        </AccordionItem>
+    </Accordion>
+    )
+}
 
+
+export default function NewPortfolioSubmittionResult({ data, error, onCloseButtonPress }: { data: NewPortfolioResponse | null, error: UnexpectedErrorType | null, onCloseButtonPress: () => void }) {
+    if (!data && !error) {
+        return (
+            <>
+                <DialogHeader>
+                    <DialogTitle>Create New Portfolio</DialogTitle>
+                    <DialogDescription>
+                        Create a finnancial portfolio for the customer.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col justify-center items-center h-50 w-full">
+                    <ClipLoader />
+                </div>
+            </>
+        )
+    }
 
 
     if (data && (data.status == 'success' || data.status === 'partial failure' || data.status === 'failed')) {
@@ -89,20 +114,27 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                     </span>
                                 </AlertDescription>
                             </Alert>
-                            : stepResult.customerCreation.status === 'skipped' ?
-                                <Alert className="mt-2">
-                                    <CircleAlert color="orange" />
-                                    <AlertTitle>Alert! Customer with the same ssn exist.</AlertTitle>
-                                    <AlertDescription>
-                                        <ul className="list-disc list-inside">
-                                            <li>Customer will not be recreate.</li>
-                                            <li>Portfolio will be attached to the existing customer.</li>
-                                            <li>Existing customer personal info will not be update.</li>
-                                        </ul>
-                                    </AlertDescription>
-                                </Alert>
-                                :
-                                <></>
+                        : stepResult.customerCreation.status === 'skipped' ?
+                            <Alert className="mt-2">
+                                <CircleAlert color="orange" />
+                                <AlertTitle>Alert! Customer with the same ssn exist.</AlertTitle>
+                                <AlertDescription>
+                                    <ul className="list-disc list-inside">
+                                        <li>Customer will not be recreate.</li>
+                                        <li>Portfolio will be attached to the existing customer.</li>
+                                        <li>Existing customer personal info will not be update.</li>
+                                    </ul>
+                                </AlertDescription>
+                            </Alert>
+                        : stepResult.customerCreation.status === 'failed' || stepResult.customerCreation.status === 'error' ?
+                        <Alert className="mt-2" variant="destructive">
+                            <CircleX color="red" />
+                            <AlertTitle>Failure! Failed to create customer account <strong>(Try again later).</strong></AlertTitle>
+                            <AlertDescription>
+                                <span>{stepResult.customerCreation.response?.body}</span>
+                            </AlertDescription>
+                        </Alert>
+                        : <></>
                     }
                     {
                         portfolioCreation.status === 'success' ?
@@ -130,7 +162,7 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                             readOnly
                                         />
                                     </div>
-                                    <Button type="submit" size="sm" className="px-3" onClick={() => navigator.clipboard.writeText(portfolioCreation.response?.data?.portfolioCode ? portfolioCreation.response?.data?.portfolioCode : '')}>
+                                    <Button type="submit" size="sm" className="px-3" onClick={() => navigator.clipboard.writeText(portfolioCreation.response?.data?.portfolioDescription ?? '')}>
                                         <span className="sr-only">Copy</span>
                                         <Copy />
                                     </Button>
@@ -143,31 +175,19 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                         <AlertTitle>Failure! Portfolio failed to create <strong>(Retry not recommended).</strong></AlertTitle>
                                         <AlertDescription>
                                             <>
-                                                <span>{portfolioCreation.response?.body}</span>
                                                 <span>Portfolio Failed to create.</span>
+                                                <span>{portfolioCreation.response?.body}</span>
                                             </>
                                         </AlertDescription>
                                     </Alert>
                                     <Separator className="my-6" />
-                                    <h3 className="text-md mt-6 font-semibold">Contact support (Recommended)</h3>
-                                    <p className="text-sm">Write some custom message and forward the failure to suport team.
-                                        The context of your portfolio creation request will be append to your message automaticly.</p>
-                                    <Label htmlFor="message" className="mt-9 mb-2 text-start w-full">Message:</Label>
-                                    <Textarea id='message' placeholder="Type your message here." value={reportMessage} onChange={(event)=>setReportMessage(event.currentTarget.value)}/>
-                                    <div className="flex items-center space-x-2 mt-4">
-                                        <Switch id="ccMe" checked={ccMe} onCheckedChange={(e)=>setCcMe(e)}/>
-                                        <Label htmlFor="ccMe">Send me a coppy.</Label>
-                                    </div>
-                                    <span className="text-sm opacity-60">Email in your user settup will be used.</span>
-                                    <DialogFooter>
-                                        <Button className="mt-7" onClick={sendReportData} disabled={sendingReport}>Send</Button>
-                                    </DialogFooter>
+                                    <ContactSuportForm title="Contact support (Recommended)." data={data} error={error} defaultOpen={false} onCloseButtonPress={onCloseButtonPress}/>
                                 </>
-                                :
+                            :
                                 <>
                                     <Alert variant="destructive" className="mt-3">
                                         <CircleX color="red" />
-                                        <AlertTitle>Failure! Portfolio failed to create  <strong>(Try again later).</strong></AlertTitle>
+                                        <AlertTitle>Failure! Portfolio failed to create <strong>(Try again later).</strong></AlertTitle>
                                         <AlertDescription>
                                             <>
                                                 <span>Portfolio Failed to create, try again later.</span>
@@ -175,9 +195,8 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                             </>
                                         </AlertDescription>
                                     </Alert>
-                                    <DialogFooter>
-                                        <Button type="button" className="mt-7" onClick={onCloseButtonPress}>Close</Button>
-                                    </DialogFooter>
+                                    <Separator className="my-6" />
+                                    <ContactSuportForm title="Contact support." data={data} error={error} defaultOpen={false} onCloseButtonPress={onCloseButtonPress}/>
                                 </>
                     }
                 </div>
@@ -215,9 +234,8 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                         </AlertDescription>
                     </Alert>
                 </div>
-                <DialogFooter>
-                    <Button type="submit" onClick={onCloseButtonPress}>Close</Button>
-                </DialogFooter>
+                <Separator className="my-6" />
+                <ContactSuportForm title="Contact support." data={data} error={error} defaultOpen={false} onCloseButtonPress={onCloseButtonPress}/>
             </>
         )
     }
@@ -236,14 +254,13 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                 <AlertTitle>Error! Failed to create portfolio.</AlertTitle>
                 <AlertDescription>
                     <ul className="list-disc list-inside">
-                        <li>{error}</li>
+                        <li>{error?.messages}</li>
                     </ul>
                 </AlertDescription>
             </Alert>
         </div>
-        <DialogFooter>
-            <Button type="submit" onClick={onCloseButtonPress}>Close</Button>
-        </DialogFooter>
+        <Separator className="my-6" />
+        <ContactSuportForm title="Contact support." data={data} error={error} defaultOpen={false} onCloseButtonPress={onCloseButtonPress}/>
     </>
     )
 }

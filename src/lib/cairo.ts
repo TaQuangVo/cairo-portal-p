@@ -34,7 +34,7 @@ async function makeRequest<T>(
     }
 
     return {
-      status: response.ok ? "success" : "error",
+      status: response.ok ? "success" : "failed",
       statusCode: response.status,
       body: responseBody, // Always store raw response
       data: parsedData, // Store parsed JSON (if applicable)
@@ -43,7 +43,7 @@ async function makeRequest<T>(
     console.error("Error fetching data:", error);
 
     return {
-      status: "failed",
+      status: "error",
       statusCode: undefined,
       body: 'Failed to exercute fetch: ' + String(error), // Ensure error message is included
       data: undefined,
