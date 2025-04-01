@@ -33,9 +33,11 @@ import {
 import { DBUser } from "@/lib/db.type"
 import { columns } from "./definitions"
 import { AddUserDialog } from "../AddUserDialog"
+import { useRouter } from 'next/navigation'
 
 
 export function UserDataTable({users}:{users: DBUser[]}) {
+  const router = useRouter()
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -143,6 +145,7 @@ export function UserDataTable({users}:{users: DBUser[]}) {
                         <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
+                        onClick={() => {router.push('/dashboard/users/'+row.original._id)}}
                         >
                         {row.getVisibleCells().map((cell) => (
                             <TableCell key={cell.id}>

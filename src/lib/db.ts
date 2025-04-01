@@ -55,13 +55,17 @@ export async function getCurrentPortfolioCount(): Promise<number>{
   const db = await getDB(DB_NAME);
   const col = db.collection<DBCounter>(COUNTER_COLLECTION_NAME);
 
-  const currentCount = await col.findOneAndUpdate(
+  let currentCount = await col.findOneAndUpdate(
     {type: 'portfolio'},
     { $inc: { counter :1 } }
   )
 
   if(!currentCount){
-    throw new Error('Cannot get counter')
+    const insertResult = await col.insertOne({_id: Object().toHexString(),type: 'portfolio', counter: 2000000})
+    if(!insertResult.acknowledged){
+      throw new Error('Failed to insert new counter')
+    }
+    return 2000000
   }
 
   return currentCount.counter

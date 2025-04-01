@@ -34,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DBBasePortfolioSubmittions } from "@/lib/db.type";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
     {
@@ -97,6 +98,16 @@ export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
       id: "messages",
     },
     {
+      header: "Created time",
+      accessorFn: (row) => row.createdAt,
+      cell: ({ row }) => {
+        return (
+          <p>{(row.getValue("createdAt") as Date).toLocaleString()}</p>
+        )
+      },
+      id: "createdAt",
+    },
+    {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
@@ -125,6 +136,7 @@ export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
   ];
   
   export function PortfolioDataTable({ portfolios }: { portfolios: DBBasePortfolioSubmittions[] }) {
+    const [jsonDataView, setJsonDataView] = React.useState<string | null>(null);
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
@@ -140,6 +152,7 @@ export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
         modelPortfolioCode: false,
         status: true,
         messages: true,
+        createdAt: false,
     });
     const [rowSelection, setRowSelection] = React.useState({});
   
@@ -156,6 +169,10 @@ export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
       onRowSelectionChange: setRowSelection,
       state: { sorting, columnFilters, columnVisibility, rowSelection },
     });
+
+    function onJsonViewChange(open:boolean) {
+      setJsonDataView(null);
+    }
   
     return (
       <div className="w-full">
@@ -202,7 +219,7 @@ export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
             <TableBody>
               {table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow key={row.id} onClick={() => setJsonDataView(JSON.stringify(row.original, null, 2))}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                     ))}
@@ -226,6 +243,29 @@ export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
             Next
           </Button>
         </div>
+
+
+
+        {
+          jsonDataView &&
+            <Dialog open={true} onOpenChange={onJsonViewChange}>
+              <DialogContent  className="md:min-w-[600px] lg:min-w-[900px] xl:min-w-[1200px]">
+                <DialogHeader>
+                  <DialogTitle>Json Viewer</DialogTitle>
+                  <DialogDescription>
+                    Show the relevant context of the request.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <pre className="p-4 bg-gray-100 rounded-md overflow-auto">{jsonDataView}</pre>
+                </div>
+
+                <DialogFooter>
+                  <Button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(jsonDataView))}>Copy JSON</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+        }
       </div>
     );
   }

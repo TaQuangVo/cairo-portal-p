@@ -1,10 +1,7 @@
 import { NewPortfolioForm } from "@/components/NewPortfolioForm";
 import { SiteHeader } from "@/components/SiteHeader";
-import { getUsers } from "@/services/userService";
 
 export default async function Page() {
-    const users = await getUsers()
-
     return (
         <div className="">
             <SiteHeader title="Create New Portfolio"/>

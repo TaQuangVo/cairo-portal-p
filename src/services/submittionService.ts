@@ -21,6 +21,17 @@ export async function saveResponseToSubmittion(newPortfolioResponse: NewPortfoli
     }
 }
 
+export async function getSubmittionById(submittionId: string): Promise<DBBasePortfolioSubmittions | null> {
+    try {
+        const submittionCol = await getSubmittionCollection();
+        const submittion = await submittionCol.findOne({ _id: submittionId });
+
+        return submittion;
+    }catch (error) { 
+        throw new Error(`Failed to fetch submittion:  ${error instanceof Error ? error.message : error}`);
+    }
+}
+
 export async function getSubmittions(
     userId: string | null,
     personalNumber: string | null,

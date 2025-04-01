@@ -9,7 +9,7 @@ export default async function Page() {
     return (
         <>
             <SiteHeader title="Users."/>
-            <div className="p-7 h-full relative">
+            <div className="p-4 md:p-7 h-full relative">
                 <UserDataTable users={users}/>
             </div>
         </>

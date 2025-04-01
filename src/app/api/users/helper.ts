@@ -15,7 +15,23 @@ export function verifyBodyUserUpdate(body: any){
     }
 }
 
-export function toUserUpdate(user: DBUser, body: any): DBUser{
+export function toUserUpdate(user: DBUser, body: any, isAdmin:boolean): DBUser{
+    if(!isAdmin){
+        return {
+            _id: body._id,
+            personalNumber:body.personalNumber,
+            isActive: body.isActive,
+            role: body.role,
+        
+            email: body.email ?? user.email,
+            givenName: body.givenName ?? user.givenName,
+            surname: body.surname ?? user.surname,
+            phoneNumber: body.phoneNumber ?? user.phoneNumber,
+    
+            createdAt: user.createdAt,
+            updatedAt: new Date(),
+        }
+    }
     return {
         _id: body._id,
         personalNumber:body.personalNumber ?? convertPersonalNumber(user.personalNumber),

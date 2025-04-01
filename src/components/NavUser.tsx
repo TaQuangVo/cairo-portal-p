@@ -38,7 +38,7 @@ export function NavUser() {
 
   useEffect(() => {
     setData(session.data) // prevent hidration error
-  }, [data])
+  }, [data, session])
 
   return (
     <SidebarMenu>
@@ -82,7 +82,7 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href='/dashboard/not-implemented?titleParam=Account'>
+              <Link href={`/dashboard/users/${data?.user.id}`}>
                 <DropdownMenuItem>
                   <UserCircleIcon />
                   Account

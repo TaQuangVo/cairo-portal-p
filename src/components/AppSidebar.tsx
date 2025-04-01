@@ -37,7 +37,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [ sessionData, setSessionData ] = React.useState<Session | null>(null)
   React.useEffect(() => {
     setSessionData(session) // prevent hidration error
-  }, [sessionData])
+  }, [sessionData, session])
 
 
   const data = {
