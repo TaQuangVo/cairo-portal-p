@@ -4,7 +4,14 @@ import { UserDataTable } from "@/components/UserDateTable";
 import { getUsers } from "@/services/userService";
 
 export default async function Page() {
-    const users = await getUsers()
+    let users = await getUsers()
+
+    users = users.map((user) => ({
+        ...user,
+        _id: user._id.toString(),
+        //createdAt: user.createdAt?.toISOString() ?? null,
+        //updatedAt: user.updatedAt?.toISOString() ?? null,
+    }));
 
     return (
         <>
