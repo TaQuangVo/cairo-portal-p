@@ -72,9 +72,9 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
         return (
             <>
                 <DialogHeader>
-                    <DialogTitle>Create New Portfolio</DialogTitle>
+                    <DialogTitle>Creating Account</DialogTitle>
                     <DialogDescription>
-                        Create a finnancial portfolio for the customer.
+                        We are creating the Account and if needed the customer
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col justify-center items-center h-50 w-full">
