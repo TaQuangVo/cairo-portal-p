@@ -1,4 +1,4 @@
-import { MongoClient, ServerApiVersion, Db, Collection } from "mongodb";
+import { MongoClient, ServerApiVersion, Db, Collection, ObjectId } from "mongodb";
 import { DBCounter, DBPortfolioSubmittions, DBUser } from "./db.type";
 
 const DB_NAME = "PeakAm";
@@ -61,7 +61,7 @@ export async function getCurrentPortfolioCount(): Promise<number>{
   )
 
   if(!currentCount){
-    const insertResult = await col.insertOne({_id: Object().toHexString(),type: 'portfolio', counter: 2000000})
+    const insertResult = await col.insertOne({_id: new ObjectId().toHexString(),type: 'portfolio', counter: 2000000})
     if(!insertResult.acknowledged){
       throw new Error('Failed to insert new counter')
     }
