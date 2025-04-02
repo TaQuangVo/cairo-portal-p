@@ -278,10 +278,8 @@ export function NewPortfolioForm() {
 
                                 <div className="text-sm mb-9">
                                     <p className="font-semibold">Create a new account for a {isCompany?'company':'private person'}.</p>
-                                    <p>(If the customer does not already exist,<br/>
-                                    one will be created automatically before the account is added)</p>
+                                    <p>(If the customer does not already exist, one will be created automatically before the account is added)</p>
                                 </div>
-
 
                                 {!isCompany && (
                                     <FormField
@@ -428,7 +426,6 @@ export function NewPortfolioForm() {
                             <p className="text-sm mt-3">Fill in all required fields to continues!</p>
                         }
                     </div>
-                    
                 </form>
             </Form>
             <Dialog open={showSubmittionModule} onOpenChange={onCloseModule}>

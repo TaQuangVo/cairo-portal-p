@@ -4,6 +4,7 @@ import { DBBasePortfolioSubmittions } from "@/lib/db.type";
 import { getSubmittions } from "@/services/submittionService";
 
 export async function GET (req: NextRequest){
+    console.log('userIdParam, personalNumber, status, page, limit')
     const token = await getToken({ req })
     if(!token){
         return Response.json({messages:'Not authenticated.'}, {status: 403})
@@ -40,8 +41,8 @@ export async function GET (req: NextRequest){
 
     // Validate the status, ignore if invalid
     const status = validStatuses.includes(statusParam as DBBasePortfolioSubmittions["status"])
-    ? (statusParam as DBBasePortfolioSubmittions["status"])
-    : null;
+        ? (statusParam as DBBasePortfolioSubmittions["status"])
+        : null;
 
     try{
         const submittions = await getSubmittions(userIdParam, personalNumber, status, page, limit)
