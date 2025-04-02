@@ -33,35 +33,12 @@ export async function POST (req: NextRequest){
         }, {status: 400})
     }
 
-    const formatedPersonalNumber = convertPersonalNumber(payload.personalNumber)
-
-    const requestBodies = payloadToRequestBodies(payload)
-    const cairoCustomer = {...requestBodies.customer, organizationId: formatedPersonalNumber}
-    const cairoAccount = requestBodies.account
-    const cairoPortfolio = requestBodies.portfolio
 
     try{
-        const currentCounter = await getCurrentPortfolioCount()
-
-
-        const portType = cairoPortfolio.portfolioTypeCode
-        const portfolioTypeData = definedPortfolioType.get(portType);
-        if(!portfolioTypeData){
-            const resData:NewPortfolioResponse = {
-                status: 'error',
-                requestType: 'Create Portfolio',
-                requestBody: body,
-                messages: 'Portfolio type is invalid, selected: ' + portType + '.',
-                dataType: 'Error',
-                data: new Error('Portfolio type is invalid')
-            }
-            await saveResponseToSubmittion(resData, userId)
-            return Response.json(resData, {status: 400})
-        }
-
-        const portfolioTypePrefix = portfolioTypeData.prefix ?? 'U';
-        cairoAccount.accountDescription = portfolioTypePrefix + currentCounter.toString()
-        cairoPortfolio.portfolioDescription = portfolioTypePrefix + currentCounter.toString()
+        const requestBodies = await payloadToRequestBodies(payload)
+        const cairoCustomer = requestBodies.customer
+        const cairoAccount = requestBodies.account
+        const cairoPortfolio = requestBodies.portfolio
 
         const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, ['SKIP CUSTOMER CREATION'])
 

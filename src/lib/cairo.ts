@@ -9,8 +9,9 @@ async function makeRequest<T>(
 ): Promise<CairoHttpResponse<T>> {
   try {
     const baseUrl = process.env.CAIRO_URL;
+    const fullUrl = baseUrl + url;
 
-    const request = fetch(baseUrl + url, {
+    const request = fetch(fullUrl, {
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -19,9 +20,13 @@ async function makeRequest<T>(
       },
     });
 
+    const start = performance.now(); // Start timer
     const response = await request;
+
     const responseBody = await response.text(); // Always get response as text
     const contentType = response.headers.get("Content-Type") || "";
+    const duration = performance.now() - start; // End timer
+    console.log(`[Request Timer] [${options?.method ? options.method : 'GET'}] ${fullUrl} - ${duration.toFixed(2)} ms`);
 
     let parsedData: T | undefined;
 
@@ -36,6 +41,7 @@ async function makeRequest<T>(
     return {
       status: response.ok ? "success" : "failed",
       statusCode: response.status,
+      requestTime: duration,
       body: responseBody, // Always store raw response
       data: parsedData, // Store parsed JSON (if applicable)
     };
@@ -45,6 +51,7 @@ async function makeRequest<T>(
     return {
       status: "error",
       statusCode: undefined,
+      requestTime: undefined,
       body: 'Failed to exercute fetch: ' + String(error), // Ensure error message is included
       data: undefined,
     };

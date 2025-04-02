@@ -29,7 +29,6 @@ import { Session } from "next-auth"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 
-
 export function NavUser() {
   const { isMobile } = useSidebar()
 

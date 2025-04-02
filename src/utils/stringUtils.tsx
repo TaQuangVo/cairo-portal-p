@@ -50,3 +50,15 @@ export function convertPersonalNumber(input: string | null | undefined): string 
   
     return formatted;
   }
+
+  export function getBirthdateFromPersonNumber(personNumber: string): string{
+    const regex = /^(\d{4})(\d{2})(\d{2})-\d{4}$/;
+    const match = personNumber.match(regex);
+  
+    if (!match) {
+      throw new Error('Personal number is in a invalid format'); // Invalid format
+    }
+  
+    const [_, year, month, day] = match;
+    return `${year}-${month}-${day}`; // ISO format
+  }

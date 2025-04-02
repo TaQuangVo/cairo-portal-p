@@ -1,6 +1,7 @@
 export type CairoHttpResponse<T> = {
     status: "success" | "error" | "failed";
     statusCode?: number;
+    requestTime?: number;
     body?: string;
     data?: T; // Parsed JSON data (optional)
 };
@@ -17,11 +18,15 @@ export interface CairoCustomer {
     customerCode: string
     firstName: string
     surName: string
-    customerTypeCode: string
+    dateOfBirth: string
+    customerTypeCode: 'PRIVATE' | 'COMPANY'
+    customerClassCode: string
     regionCode: string
     languageCode: string
+    startDate: string
     organizationId: string
     managerCode: string
+    citizenshipRegionCode: string
     customerContacts?: CairoCustomerContact[]; // Via Filter
 
     customerId: number
@@ -35,10 +40,13 @@ export interface CairoCustomer {
 export type CairoCustomerCreationPayload = Required<Pick<CairoCustomer, 
     'customerCode' | 
     'firstName' | 
+    'dateOfBirth' | 
     'surName' | 
     'customerTypeCode' |
+    'citizenshipRegionCode' |
     'regionCode' |
     'languageCode' |
+    'startDate' |
     'organizationId' |
     'managerCode' |
     'customerContacts'>>;
@@ -65,6 +73,7 @@ export type CairoAccount = {
     customerCode: string
     currencyCode?: string
     custodianCode: string
+    omniAccountCodes: string[]
 
     startDate: string
     endDate?: string
@@ -77,6 +86,8 @@ export type CairoAccountCreationPayload = Required<Pick<CairoAccount,
     'accountTypeCode' |
     'customerCode' |
     'currencyCode' |
+    'startDate' |
+    'omniAccountCodes' |
     'custodianCode'>>;
 
 export type CairoAccountCreationResponse = Required<Pick<CairoAccount,'accountCode'>>;
@@ -93,6 +104,12 @@ export type CairoPortfolio = {
     modelPortfolioCode?: string
     bookValueMethodCode: string
     scenarioCode: string
+    performanceStartDate: string
+    performance: boolean
+    targetAccountCode: string
+    discountTemplateCode: string
+    mifidDistributionStrategyCode: string
+    portfolioAuthorities: object[] 
 
     portfolioId: number
     startDate: string
@@ -107,8 +124,15 @@ export type CairoPortfolioCreationPayload = Required<Pick<CairoPortfolio,
     'customerCode' |
     'currencyCode' |
     'accountCode' |
+    'startDate' |
     'managerCode' |
     'bookValueMethodCode' |
+    'performanceStartDate' |
+    'targetAccountCode' |
+    'performance' |
+    'discountTemplateCode' |
+    'mifidDistributionStrategyCode' |
+    'portfolioAuthorities' |
     'scenarioCode'>> & 
     Partial<Pick<CairoPortfolio, 'modelPortfolioCode'>>;
 

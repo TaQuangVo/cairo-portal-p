@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -26,20 +27,15 @@ import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper"
 import NewPortfolioSubmittionResult from "./NewPortfolioSubmittionResult"
 import { modelPortfolioMap } from "@/constant/modelPortfolio"
 import { definedPortfolioType } from "@/constant/portfolioType"
+import { Switch } from "./ui/switch"
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
+
 
 const userPortfolioSchema = z.object({
-    firstname: z.string().min(2, "Firstname must be at least 2 characters."),
-    surname: z.string().min(2, "Surname must be at least 2 characters."),
-    personalNumber: z.string()
-        .min(10, { message: "Personal number must be at least 10 characters." })
-        .refine((value) => {
-            try {
-                convertPersonalNumber(value)
-                return true
-            } catch (error) {
-                return false
-            }
-        }, { message: "Invalid Swedish personal number format." }),
+    isCompany: z.boolean(),
+    firstname: z.string(),
+    surname: z.string(),
+    personalNumber: z.string() ,
     address: z.string().min(5, "Address must be at least 5 characters."),
     address2: z.string().optional().nullable(),
     postalCode: z.string().min(4, "Postal code must be at least 4 characters."),
@@ -52,11 +48,57 @@ const userPortfolioSchema = z.object({
     modelPortfolioCode: z.string().refine((value) => {
         return modelPortfolioMap.get(value) != undefined;
     }, { message: "Invalid model portfolio code." }).or(z.literal('')).optional().nullable(),
-})
+}).superRefine((data, ctx) => {
+    if (!data.isCompany) {
+        if(!data.firstname || data.firstname.length < 2){
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["firstname"],
+                message: "Firstname must be at least 2 characters."
+            });
+        }
+        if(!data.surname || data.surname.length < 2){
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["surname"],
+                message: "Surname must be at least 2 characters."
+            });
+        }
+
+        try {
+            convertPersonalNumber(data.personalNumber)
+        } catch (error) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["personalNumber"],
+                message: "PersonalNumber must be a valid Swedish organization number."
+            });
+        }
+    }
+
+    if (data.isCompany) {
+        if(!data.surname || data.surname.length < 2){
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["surname"],
+                message: "Company name must be at least 2 characters."
+            });
+        }
+
+        if(!data.personalNumber || data.personalNumber.length < 10){
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["personalNumber"],
+                message: "Organization number must be at least 10 characters long."
+            });
+        }
+    }
+});
 
 type UserPortfolioFormValues = z.infer<typeof userPortfolioSchema>
 
 const formDefaultValues = {
+    isCompany: false,
     firstname: "",
     surname: "",
     personalNumber: "",
@@ -107,9 +149,14 @@ export function NewPortfolioForm() {
         setShowSubmittionModule(true)
         setIsLoading(true)
 
+        const body = {
+            ...data, 
+            personalNumber: !data.isCompany ? convertPersonalNumber(data.personalNumber): data.personalNumber
+        }
+
         const response = await fetch("/api/submittions/portfolios", {
             method: "POST",
-            body: JSON.stringify({...data, personalNumber: convertPersonalNumber(data.personalNumber)}),
+            body: JSON.stringify(body),
         })
 
         setIsLoading(false)
@@ -183,34 +230,82 @@ export function NewPortfolioForm() {
         toast("Failed to create portfolio!")
     }
 
+    const isCompany = form.watch("isCompany");
+
     return (
         <>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
-                    {/* Customer Information Section */}
-                                <FormField control={form.control} name="firstname" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>First Name*</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Enter first name" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
+
+                <FormField
+                                    control={form.control}
+                                    name="isCompany"
+                                    render={({ field }) => (
+                                        <FormItem >
+                                            <FormControl>
+                                            <Tabs value={field.value?'company':'private'} className="w-[400px] mx-auto " onValueChange={(value:string)=>{
+                                                field.onChange(value === 'company')
+                                            }}>
+                                                <TabsList className="grid w-full grid-cols-2"> 
+                                                    <TabsTrigger value="private">Private Person</TabsTrigger>
+                                                    <TabsTrigger value="company">Organization</TabsTrigger>
+                                                </TabsList>
+                                            </Tabs>
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="isCompany"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-row items-center justify-start rounded-lg border p-3 gap-3 mb-13">
+                                            <FormControl>
+                                                <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <div className="space-y-0.5">
+                                                <FormLabel>Company Identity</FormLabel>
+                                                <FormDescription>
+                                                    Register portfolio for a company
+                                                </FormDescription>
+                                            </div>
+                                        </FormItem>
+                                    )}
+                                />
+
+
+                                {!isCompany && (
+                                    <FormField
+                                        control={form.control}
+                                        name="firstname"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>First Name*</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Enter first name" {...field} value={field.value ?? ""}/>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
                                 <FormField control={form.control} name="surname" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Surname*</FormLabel>
+                                        <FormLabel>{isCompany ? "Company Name*" : "Surname*"}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter surname" {...field} />
+                                            <Input placeholder="Enter surname" {...field} value={field.value ?? ""}/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                             <FormField control={form.control} name="personalNumber" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Personal Number*</FormLabel>
+                                    <FormLabel>{isCompany ? "Organization number*" : "Personal Number*"}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter personal number" {...field} />
+                                        <Input placeholder={isCompany ? "Enter organization number*" : "Enter personal number*"} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -327,6 +422,7 @@ export function NewPortfolioForm() {
                             <p className="text-sm mt-3">Fill in all required fields to continues!</p>
                         }
                     </div>
+                    
                 </form>
             </Form>
             <Dialog open={showSubmittionModule} onOpenChange={onCloseModule}>
