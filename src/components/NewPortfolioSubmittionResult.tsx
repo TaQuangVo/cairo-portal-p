@@ -28,7 +28,7 @@ function ContactSuportForm({data, error, defaultOpen, title, onCloseButtonPress}
         const response = await fetch("/api/reports", {
             method: "POST",
             body: JSON.stringify({
-                type: 'Create Portfolio Submittion Failure',
+                type: 'Create Account Submittion Failure',
                 message: reportMessage,
                 attachmentData: data ? data : error,
                 ccMe: ccMe 
@@ -48,15 +48,14 @@ function ContactSuportForm({data, error, defaultOpen, title, onCloseButtonPress}
         <AccordionItem value="item-1">
             <AccordionTrigger>{title}</AccordionTrigger>
             <AccordionContent>
-                <p className="text-sm">Write some custom message and forward the failure to suport team.
-                    The context of your portfolio creation request will be appended to your message automaticly.</p>
+                <p className="text-sm">Add a message for the support team. Information about your portfolio request will be attached automatically.</p>
                 <Label htmlFor="message" className="mt-9 mb-2 text-start w-full">Message:</Label>
                 <Textarea id='message' placeholder="Type your message here." value={reportMessage} onChange={(event)=>setReportMessage(event.currentTarget.value)}/>
                 <div className="flex items-center space-x-2 mt-4">
                     <Switch id="ccMe" checked={ccMe} onCheckedChange={(e)=>setCcMe(e)}/>
-                    <Label htmlFor="ccMe">Send me a coppy.</Label>
+                    <Label htmlFor="ccMe">Send me a copy.</Label>
                 </div>
-                <span className="text-sm opacity-60">Email in your user settup will be used.</span>
+                <span className="text-sm opacity-60">The email from your user settings will be used.</span>
                 <DialogFooter>
                     <Button type="button" variant="outline" className="mt-7" onClick={onCloseButtonPress}>Close</Button>
                     <Button className="mt-7" onClick={onSendReportData} disabled={sendingReport}>Send report</Button>
@@ -96,9 +95,9 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
         return (
             <>
                 <DialogHeader>
-                    <DialogTitle>Create New Portfolio</DialogTitle>
+                    <DialogTitle>{data.status == 'success' ? 'Done' : 'Failed!!!'}</DialogTitle>
                     <DialogDescription>
-                        Create a finnancial portfolio for the customer.
+                        {data.status == 'success' ? 'A new account has been created.' : 'Failed to create account.'}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="w-full">
@@ -121,15 +120,15 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                 <AlertDescription>
                                     <ul className="list-disc list-inside">
                                         <li>Customer will not be recreate.</li>
-                                        <li>Portfolio will be attached to the existing customer.</li>
-                                        <li>Existing customer personal info will not be update.</li>
+                                        <li>Account will be attached to the existing customer.</li>
+                                        <li>Personal infomation of existing customer will not be updated.</li>
                                     </ul>
                                 </AlertDescription>
                             </Alert>
                         : stepResult.customerCreation.status === 'failed' || stepResult.customerCreation.status === 'error' ?
                         <Alert className="mt-2" variant="destructive">
                             <CircleX color="red" />
-                            <AlertTitle>Failure! Failed to create customer account <strong>(Try again later).</strong></AlertTitle>
+                            <AlertTitle>Failure! Failed to create customer <strong>(Try again later).</strong></AlertTitle>
                             <AlertDescription>
                                 <span>{stepResult.customerCreation.response?.body}</span>
                             </AlertDescription>
@@ -141,12 +140,12 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                             <>
                                 <Alert className="mt-3">
                                     <CircleCheck color="green" />
-                                    <AlertTitle>Success! Portfolio has been created.</AlertTitle>
+                                    <AlertTitle>Success! Account has been created.</AlertTitle>
                                     <AlertDescription>
                                         <span>
                                             An
                                             <strong>{` ${portfolioCreation.payload.portfolioTypeCode} `}</strong>
-                                            portfolio has opened and attached to the customer.
+                                            account has been created and attached to the customer.
                                         </span>
                                     </AlertDescription>
                                 </Alert>
@@ -154,7 +153,7 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                 <div className="flex items-end w-full space-x-2 pt-12 pb-4">
                                     <div className="flex flex-1 gap-2 flex-col">
                                         <Label htmlFor="link">
-                                            Created Portfolio Id:
+                                            Created Account Id:
                                         </Label>
                                         <Input
                                             id="link"
@@ -172,10 +171,10 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                 <>
                                     <Alert variant="destructive" className="mt-3">
                                         <CircleX color="red" />
-                                        <AlertTitle>Failure! Portfolio failed to create <strong>(Retry not recommended).</strong></AlertTitle>
+                                        <AlertTitle>Failure! Account failed to create <strong>(Retry not recommended).</strong></AlertTitle>
                                         <AlertDescription>
                                             <>
-                                                <span>Portfolio Failed to create.</span>
+                                                <span>Account Failed to create, please contact suport.</span>
                                                 <span>{portfolioCreation.response?.body}</span>
                                             </>
                                         </AlertDescription>
@@ -187,7 +186,7 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                 <>
                                     <Alert variant="destructive" className="mt-3">
                                         <CircleX color="red" />
-                                        <AlertTitle>Failure! Portfolio failed to create <strong>(Try again later).</strong></AlertTitle>
+                                        <AlertTitle>Failure! Account failed to create <strong>(Try again later).</strong></AlertTitle>
                                         <AlertDescription>
                                             <>
                                                 <span>Portfolio Failed to create, try again later.</span>
@@ -196,7 +195,7 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                                         </AlertDescription>
                                     </Alert>
                                     <Separator className="my-6" />
-                                    <ContactSuportForm title="Contact support." data={data} error={error} defaultOpen={false} onCloseButtonPress={onCloseButtonPress}/>
+                                    <ContactSuportForm title="Contact support." data={data} error={error} defaultOpen={true} onCloseButtonPress={onCloseButtonPress}/>
                                 </>
                     }
                 </div>
@@ -208,15 +207,15 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
         return (
             <>
                 <DialogHeader>
-                    <DialogTitle>Create New Portfolio</DialogTitle>
+                    <DialogTitle>Failed!!!</DialogTitle>
                     <DialogDescription>
-                        Make changes to your profile here. Click save when you're done.
+                        Failed to create account.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <Alert className="mt-2">
                         <CircleAlert color="orange" />
-                        <AlertTitle>Error! Failed to create portfolio.</AlertTitle>
+                        <AlertTitle>Error! Failed to create account.</AlertTitle>
                         <AlertDescription>
                             <ul className="list-disc list-inside">
                                 {
@@ -243,15 +242,15 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
     return (
     <>
         <DialogHeader>
-            <DialogTitle>Create New Portfolio</DialogTitle>
+            <DialogTitle>Failed!!!</DialogTitle>
             <DialogDescription>
-                Make changes to your profile here. Click save when you're done.
+                Failed to create account.
             </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
             <Alert className="mt-2">
                 <CircleAlert color="orange" />
-                <AlertTitle>Error! Failed to create portfolio.</AlertTitle>
+                <AlertTitle>Error! Failed to create account.</AlertTitle>
                 <AlertDescription>
                     <ul className="list-disc list-inside">
                         <li>{error?.messages}</li>

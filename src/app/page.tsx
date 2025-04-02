@@ -21,8 +21,8 @@ export default function Home() {
       </div>
       <main className="w-full h-full flex items-center">
         <div className="md:max-w-[400px] lg:max-w-[500px] xl:max-w-[600px] 2xl:max-w-[800px]">
-          <h1 className="text-3xl font-bold mb-4 text-primary">Welcome to the Säkra.Peak integration</h1>
-          <p className="text-lg">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.</p>
+          <h1 className="text-3xl font-bold mb-4 text-primary">Welcome to Säkra secure...</h1>
+          <p className="text-lg">This secure portal is for authorized company personnel only.  Use it to create and manage clients and accounts. If you need access or support, please contact the system administrator.</p>
           <div className="mt-14 flex flex-col md:flex-row items-start md:items-end">
             <LoginButton />
             <Link href='https://www.google.com/' className="underline mt-4 md:ml-5 text-sm">I'm not supose to be here.</Link>

@@ -43,14 +43,16 @@ export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
       id: "personalNumber", // Explicitly set the id for the column
     },
     {
-      header: "First Name",
-      accessorFn: (row) => row.requestBody?.firstname,
-      id: "firstname", // Explicitly set the id for the column
+      header: "Name",
+      accessorFn: (row) => row.requestBody?.firstname + ' ' + row.requestBody?.surname , // Accessing the nested surname and firstname
+      id: "name" 
+      ,
     },
     {
-      header: "Surname",
-      accessorFn: (row) => row.requestBody?.surname,
-      id: "surname",
+      header: "Type",
+      accessorFn: (row) => row.requestBody.isCompany ? 'Company' : 'Private' , // Accessing the nested surname and firstname
+      id: "type" 
+      ,
     },
     {
       header: "Address",
@@ -141,8 +143,7 @@ export const columns: ColumnDef<DBBasePortfolioSubmittions>[] = [
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
         personalNumber: true,
-        firstname: true,
-        surname: true,
+        name: true,
         address: false,
         postalCode: false,
         city: false,

@@ -20,7 +20,7 @@ export async function POST (req: NextRequest){
 
     const user = await getUserById(token.id)
 
-    if(type === 'Create Portfolio Submittion Failure'){
+    if(type === 'Create Account Submittion Failure'){
         const isSent = await sendSubmittionFailureReportMail(message, attachmentData as NewPortfolioResponse, token.id, ccMe, user!)
         if(isSent){
             return Response.json({messages:'Mail sent successfully.'}, {status: 200})

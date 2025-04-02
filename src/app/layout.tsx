@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 
 export const metadata: Metadata = {
-  title: "Säkra VP AB",
+  title: "Säkra secure",
   description: "Säkra VP AB, intergration",
   icons: '/favicon.png',
 };

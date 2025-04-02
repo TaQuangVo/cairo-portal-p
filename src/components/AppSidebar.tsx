@@ -29,6 +29,7 @@ import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { useSession } from "next-auth/react"
 import { Session } from "next-auth"
+import Image from "next/image"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter()
@@ -48,16 +49,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     mainActionButton:{
       mainButtonOptions: [{
-          title: 'New Portfolio.',
+          title: 'Create Account.',
           icon: PlusCircleIcon,
           onClick: () => {router.push('/dashboard/portfolios')},
           value: 'Quick Create'
-      },{
-        title: 'Update Portfolio.',
-        icon: FilePenLine,
-        onClick: () => {router.push('/dashboard/not-implemented?titleParam=Update Portfolio')},
-        value: 'Update Portfolio'
-    }],
+      }
+      //,{
+      //  title: 'Update Portfolio.',
+      //  icon: FilePenLine,
+      //  onClick: () => {router.push('/dashboard/not-implemented?titleParam=Update Portfolio')},
+      //  value: 'Update Portfolio'
+      //}
+    ],
       secondaryButton: {
           icon: Ellipsis,
       }
@@ -77,16 +80,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
     navSecondary: [
-      {
-        title: "Get Help",
-        url: "/dashboard/not-implemented?titleParam=Get Help",
-        icon: HelpCircleIcon,
-      },
-      {
-        title: "Report",
-        url: "/dashboard/not-implemented?titleParam=Report",
-        icon: Bug,
-      },
+      //{
+      //  title: "Get Help",
+      //  url: "/dashboard/not-implemented?titleParam=Get Help",
+      //  icon: HelpCircleIcon,
+      //},
+      //{
+      //  title: "Report",
+      //  url: "/dashboard/not-implemented?titleParam=Report",
+      //  icon: Bug,
+      //},
       {
         title: "Landing page",
         url: "/",
@@ -105,8 +108,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link href="/dashboard">
-                <Boxes className="h-5 w-5"/>
-                <span className="text-base font-semibold">Integration.</span>
+              <Image src="/skra_logo.png" alt="Hero" width={20} height={20} />
+                <span className="text-base font-semibold">Säkra secure.</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

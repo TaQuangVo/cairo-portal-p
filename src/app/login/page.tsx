@@ -16,6 +16,7 @@ import { useState } from "react";
 import { Boxes, X } from 'lucide-react';
 import Link from 'next/link';
 import { convertPersonalNumber } from '@/utils/stringUtils';
+import Image from 'next/image';
 
 type CurrentTransaction = {
   id:string,
@@ -56,7 +57,7 @@ export default function InputWithButton() {
               setError('Sign-in failed')
           }
           if (signInResult?.ok) {
-            router.push('/')
+            router.push('/dashboard')
           }
       }
 
@@ -123,13 +124,13 @@ export default function InputWithButton() {
         <Link href='https://centevo.se/'>CENTEVO</Link>
       </div>
       <div className='font-semibold mb-7 text-2xl flex items-center'>
-        <Boxes />
-        <p className='ml-2'>Integration.</p>
+        <Image src="/skra_logo.png" alt="Hero" width={30} height={30} />
+        <p className='ml-2'>Säkra secure.</p>
       </div>
       <Card className="w-[350px]">
       <CardHeader>
         <CardTitle>Login with BankId</CardTitle>
-        <CardDescription>Fill in Social security number and continues with BankId</CardDescription>
+        <CardDescription>Fill in social security number and continue with BankId</CardDescription>
       </CardHeader>
       <CardContent>
           <div className="grid w-full items-center gap-4">
@@ -137,7 +138,10 @@ export default function InputWithButton() {
               <Label htmlFor="socialSecurityNumber">Social security number</Label>
               <div className="flex">
                 <Input id="socialSecurityNumber" type="text"  placeholder="xxxxxxxx-xxxx" value={ssn} onChange={e=>setSsn(e.currentTarget.value)}/>
-                <Button disabled={disableButon} onClick={handleGetLoginSession} className="ml-2">BankId</Button>
+                <Button disabled={disableButon} onClick={handleGetLoginSession} className="ml-2">
+                  <Image src="/bankid-icon.svg" alt="Hero" width={28} height={28} />
+                  BankId
+                  </Button>
               </div>
               <p className="text-sm text-red-600">{error}</p>
               <Link href='/'><p className="text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p></Link>

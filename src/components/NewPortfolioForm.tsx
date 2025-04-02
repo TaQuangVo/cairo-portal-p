@@ -259,7 +259,7 @@ export function NewPortfolioForm() {
                                     control={form.control}
                                     name="isCompany"
                                     render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center justify-start rounded-lg border p-3 gap-3 mb-13">
+                                        <FormItem className="flex flex-row items-center justify-start rounded-lg border p-3 gap-3 mb-10">
                                             <FormControl>
                                                 <Switch
                                                 checked={field.value}
@@ -269,12 +269,18 @@ export function NewPortfolioForm() {
                                             <div className="space-y-0.5">
                                                 <FormLabel>Company Identity</FormLabel>
                                                 <FormDescription>
-                                                    Register portfolio for a company
+                                                    Register account for a company
                                                 </FormDescription>
                                             </div>
                                         </FormItem>
                                     )}
                                 />
+
+                                <div className="text-sm mb-9">
+                                    <p className="font-semibold">Create a new account for a {isCompany?'company':'private person'}.</p>
+                                    <p>(If the customer does not already exist,<br/>
+                                    one will be created automatically before the account is added)</p>
+                                </div>
 
 
                                 {!isCompany && (
@@ -303,9 +309,9 @@ export function NewPortfolioForm() {
                                 )} />
                             <FormField control={form.control} name="personalNumber" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{isCompany ? "Organization number*" : "Personal Number*"}</FormLabel>
+                                    <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder={isCompany ? "Enter organization number*" : "Enter personal number*"} {...field} />
+                                        <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -415,7 +421,7 @@ export function NewPortfolioForm() {
                     <div className="flex flex-col items-end mt-20 mb-9">
                         <div>
                             <Button type="button" variant='outline' className="mr-4" disabled={!form.formState.isDirty} onClick={()=>resetForm()}>Clear formular</Button>
-                            <Button type="submit" disabled={!form.formState.isValid}>Create New Portfolio</Button>
+                            <Button type="submit" disabled={!form.formState.isValid}>Create</Button>
                         </div>
                         {
                             !form.formState.isValid &&
