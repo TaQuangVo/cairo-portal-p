@@ -259,7 +259,7 @@ export function NewPortfolioForm() {
                                     control={form.control}
                                     name="isCompany"
                                     render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center justify-start rounded-lg border p-3 gap-3 mb-10">
+                                        <FormItem className="flex flex-row items-center justify-start rounded-lg border p-3 gap-3 mb-9">
                                             <FormControl>
                                                 <Switch
                                                 checked={field.value}
@@ -379,11 +379,11 @@ export function NewPortfolioForm() {
                     {/* Portfolio Configuration Section */}
                         <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Portfolio Type*</FormLabel>
+                                <FormLabel>Account Type*</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select portfolio type" />
+                                            <SelectValue placeholder="Select account type" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -399,11 +399,11 @@ export function NewPortfolioForm() {
                         )} />
                         <FormField control={form.control} name="modelPortfolioCode" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Model Portfolio</FormLabel>
+                                <FormLabel>Account Model</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select model portfolio" />
+                                            <SelectValue placeholder="Select account model" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className="max-h-70">
