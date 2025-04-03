@@ -45,13 +45,13 @@ export default async function Page({ searchParams }: { params: Params, searchPar
         : null;
 
     
-    const users = await getSubmittions(userIdParam, personalNumber, status, page, limit)
+    const submittion = await getSubmittions(userIdParam, personalNumber, status, page, limit)
 
     return (
         <>
             <SiteHeader title="Submittions."/>
             <div className="p-4 md:p-7 h-full relative">
-                <PortfolioDataTable portfolios={users}/>
+                <PortfolioDataTable portfolios={submittion}/>
             </div>
         </>
     )

@@ -3,14 +3,13 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { getTransaction } from "./scrive";
 import { getUserByPersonalNumber } from "@/services/userService";
 import { convertPersonalNumber } from "@/utils/stringUtils";
-import { getToken, JWT } from "next-auth/jwt";
-import { getSession } from "next-auth/react";
+import { JWT } from "next-auth/jwt";
 
 
 export const authOptions = {
     strategy: "jwt",
     jwt: {
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: 60 * 60 * 24,
     },
     callbacks: {
       async jwt({ token, user }:{token: JWT, user: User}) {
