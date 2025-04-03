@@ -128,6 +128,7 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
     const accountDescription = portfolioTypePrefix + currentCounter.toString()
     const portfolioDescription = portfolioTypePrefix + currentCounter.toString()
     const modelPortfolioCode = payload.modelPortfolioCode && modelPortfolioMap.get(payload.modelPortfolioCode)
+    const portfolioTypeCode = portfolioTypeData ? portfolioTypeData.id : '';
 
     const customerPayload: CairoCustomerCreationPayload = {
         customerCode: customerCode,
@@ -170,7 +171,7 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
     const portfolioPayload: CairoPortfolioCreationPayload = {
         portfolioCode: portfolioCode,
         portfolioDescription: portfolioDescription,
-        portfolioTypeCode: payload.portfolioTypeCode,
+        portfolioTypeCode: portfolioTypeCode,
         customerCode: customerCode,
         currencyCode: 'SEK',
         accountCode: accountCode,

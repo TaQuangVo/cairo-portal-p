@@ -49,7 +49,7 @@ export default async function Page({ searchParams }: { params: Params, searchPar
 
     return (
         <>
-            <SiteHeader title="Submittions."/>
+            <SiteHeader title="My submission."/>
             <div className="p-4 md:p-7 h-full relative">
                 <PortfolioDataTable portfolios={submittion}/>
             </div>

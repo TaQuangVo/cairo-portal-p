@@ -67,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     navMain: [
       {
-        title: "My Submittions",
+        title: "My submission",
         url: "/dashboard/submittions",
         icon: ListIcon,
       },
