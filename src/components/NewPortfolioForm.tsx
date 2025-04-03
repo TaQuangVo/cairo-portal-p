@@ -162,6 +162,9 @@ export function NewPortfolioForm() {
         }
 
         const response = await fetch("/api/submittions/portfolios", {
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+            },
             method: "POST",
             body: JSON.stringify(body),
         })
