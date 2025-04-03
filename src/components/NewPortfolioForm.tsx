@@ -92,6 +92,13 @@ const userPortfolioSchema = z.object({
                 message: "Organization number must be at least 10 characters long."
             });
         }
+        if(modelPortfolioMap.get(data.portfolioTypeCode) === 'ISK'){
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["portfolioTypeCode"],
+                message: "Company accounts cannot be Investeringssparkonto accounts."
+            });
+        }
     }
 });
 
@@ -109,7 +116,7 @@ const formDefaultValues = {
     mobile: "",
     emailAddress: "",
     portfolioTypeCode: undefined,
-    modelPortfolioCode: "",
+    modelPortfolioCode: undefined,
 }
 
 export type UnexpectedErrorType = {
@@ -245,6 +252,10 @@ export function NewPortfolioForm() {
                                             <FormControl>
                                             <Tabs value={field.value?'company':'private'} className="w-[400px] mx-auto " onValueChange={(value:string)=>{
                                                 field.onChange(value === 'company')
+                                                const currentType = form.getValues().portfolioTypeCode
+                                                if(definedPortfolioType.get(currentType)?.id === 'ISK'){
+                                                    form.setValue("portfolioTypeCode", '')
+                                                }
                                             }}>
                                                 <TabsList className="grid w-full grid-cols-2"> 
                                                     <TabsTrigger value="private">Private Person</TabsTrigger>
@@ -255,6 +266,7 @@ export function NewPortfolioForm() {
                                         </FormItem>
                                     )}
                                 />
+                                {/*
                                 <FormField
                                     control={form.control}
                                     name="isCompany"
@@ -263,7 +275,13 @@ export function NewPortfolioForm() {
                                             <FormControl>
                                                 <Switch
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={(value) => {
+                                                    field.onChange(value)
+                                                    const currentType = form.getValues().portfolioTypeCode
+                                                    if(definedPortfolioType.get(currentType)?.id === 'ISK'){
+                                                        form.setValue("portfolioTypeCode", '')
+                                                    }
+                                                  }}
                                                 />
                                             </FormControl>
                                             <div className="space-y-0.5">
@@ -274,7 +292,7 @@ export function NewPortfolioForm() {
                                             </div>
                                         </FormItem>
                                     )}
-                                />
+                                />*/}
 
                                 <div className="text-sm mb-9">
                                     <p className="font-semibold">Create a new account for a {isCompany?'company':'private person'}.</p>
@@ -387,6 +405,9 @@ export function NewPortfolioForm() {
                                     <SelectContent>
                                         {
                                             [...definedPortfolioType.entries()].map(([key, value]) => {
+                                                if(isCompany && value.id === 'ISK'){
+                                                    return null
+                                                }
                                                 return <SelectItem key={value.id} value={key}>{key}</SelectItem>
                                             })
                                         }

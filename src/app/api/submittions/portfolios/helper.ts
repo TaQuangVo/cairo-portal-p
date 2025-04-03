@@ -94,6 +94,13 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
                 message: "Organization number must be at least 10 characters long."
             });
         }
+        if(modelPortfolioMap.get(data.portfolioTypeCode) === 'ISK'){
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["portfolioTypeCode"],
+                message: "Company accounts cannot be Investeringssparkonto accounts."
+            });
+        }
     }
 });
 
@@ -131,7 +138,7 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
         regionCode: 'SE',
         languageCode: 'SV',
         startDate: today,
-        'citizenshipRegionCode': 'SE',
+        citizenshipRegionCode: 'SE',
         organizationId: formatedPersonalNumber,
         managerCode: managerCode,
         customerContacts: [

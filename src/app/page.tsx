@@ -28,8 +28,8 @@ export default function Home() {
             <Link href='https://www.google.com/' className="underline mt-4 md:ml-5 text-sm">I'm not supose to be here.</Link>
           </div>
         </div>
-        <div className="relative grow h-full max-h-[500px] max-w-[505px] -translate-y-5 hidden md:block m-auto">
-          <Image src="/hero-image3.png" alt="Hero" fill className='object-contain'/>
+        <div className="relative grow h-full max-h-[600px] max-w-[600px] hidden md:block m-auto">
+          <Image src="/hero.png" alt="Hero" fill className='object-contain'/>
         </div>
         <div className="absolute bottom-0 right-0 my-6 text-xs text-right">
           <p>Developed by: Säkra VP AB 2025</p>

@@ -1,9 +1,10 @@
-import NextAuth, { Session, User} from "next-auth"
+import NextAuth, { getServerSession, Session, User} from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getTransaction } from "./scrive";
 import { getUserByPersonalNumber } from "@/services/userService";
 import { convertPersonalNumber } from "@/utils/stringUtils";
-import { JWT } from "next-auth/jwt";
+import { getToken, JWT } from "next-auth/jwt";
+import { getSession } from "next-auth/react";
 
 
 export const authOptions = {
@@ -41,29 +42,38 @@ export const authOptions = {
             transactionId: { label: "Transaction Id", type: "text", placeholder: "Transaction Id" },
           },
           async authorize(credentials, req) {
-            if(!credentials?.transactionId){
-              return null;
-            }
+            const session = await getServerSession(authOptions);
 
-            //get transaction from bankId
-            const st = await getTransaction(credentials.transactionId);
-            if(st.status != 'complete'){
-              return null;
-            }
+            let userSSN:string|undefined
+            
+            if(!session || !session.user || !session.user.personalNumber){
+              if(!credentials?.transactionId){
+                return null;
+              }
 
-            let userSSN = st.bankId?.completionData?.user?.personalNumber;
-            if(!userSSN){
-              return null;
-            }
+              //get transaction from bankId
+              const st = await getTransaction(credentials.transactionId);
+              if(st.status != 'complete'){
+                return null;
+              }
 
-            try{
-              userSSN = convertPersonalNumber(userSSN)
-            }catch(e){
-              return null;
+              userSSN = st.bankId?.completionData?.user?.personalNumber;
+              if(!userSSN){
+                return null;
+              }
+
+              try{
+                userSSN = convertPersonalNumber(userSSN)
+              }catch(e){
+                return null;
+              }
+            } else{
+              userSSN = session.user.personalNumber;
             }
 
             //Check if user is registered in our system
             const user = await getUserByPersonalNumber(userSSN)
+            console.log(user)
 
             if(user && !user.isActive){
               return null;

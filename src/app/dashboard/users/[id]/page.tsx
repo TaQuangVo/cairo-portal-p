@@ -10,12 +10,12 @@ import { DBUser } from '@/lib/db.type'
 import { convertPersonalNumber } from '@/utils/stringUtils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Session } from 'next-auth'
-import { useSession } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ErrorOption, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { z } from 'zod'
+import { set, z } from 'zod'
 
 const userFormSchema = z.object({
     _id: z.string(),
@@ -33,7 +33,7 @@ const userFormSchema = z.object({
         }),
     role: z.enum(["admin", "user"]),
     isActive: z.boolean(),
-    email: z.string().email().optional().nullable(),
+    email: z.string().email().or(z.literal('')).optional().nullable(),
     givenName: z.string().optional().nullable(),
     surname: z.string().optional().nullable(),
     phoneNumber: z.string().optional().nullable(),
@@ -91,7 +91,16 @@ export default function Page() {
                     </pre>
                 ),
             })
+            setIsEditing(false)
             router.refresh()
+
+            // if update own info, revalidate jwt token
+            if(session.data && data._id == session.data.user.id){
+                await signIn("credentials", {
+                    redirect: false,
+                    transactionId: ''
+                })
+            }
         }else{
             const data = await response.json();
 
@@ -300,6 +309,10 @@ export default function Page() {
                             </div>
                         </form>
                     </Form>
+                    <Button onClick={()=>signIn("credentials", {
+              redirect: false,
+              transactionId: ''
+          })} variant='outline' className="mt-4">test</Button>
                 </div>
             </div>
     </>

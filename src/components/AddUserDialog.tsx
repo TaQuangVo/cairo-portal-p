@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "./ui/separator"
 import { convertPersonalNumber } from "@/utils/stringUtils"
+import { useState } from "react";
 
 const userFormSchema = z.object({
     personalNumber: z.string()
@@ -59,6 +60,7 @@ const userFormSchema = z.object({
 type UserFormValues = z.infer<typeof userFormSchema>
 
 export function AddUserDialog() {
+    const [open, setOpen] = useState(false)
     const router = useRouter()
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userFormSchema),
@@ -94,6 +96,16 @@ export function AddUserDialog() {
                     </pre>
                 ),
             })
+            setOpen(false)
+            form.reset({
+                personalNumber: "",
+                role: "user",
+                isActive: true,
+                email: null,
+                givenName: null,
+                surname: null,
+                phoneNumber: null,
+            })
             router.refresh()
         }else if (response.status == 409){
             const data = await response.json();
@@ -112,7 +124,7 @@ export function AddUserDialog() {
     }
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button variant='default'>Add User</Button>
             </DialogTrigger>

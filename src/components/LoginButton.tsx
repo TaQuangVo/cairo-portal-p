@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { signIn } from "next-auth/react";
 
 export default async function LoginButton() {
   const session = await getServerSession();
