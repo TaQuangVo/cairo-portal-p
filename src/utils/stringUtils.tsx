@@ -1,4 +1,5 @@
 export function convertPersonalNumber(input: string | null | undefined): string {
+  console.log('verifing: ' + input)
     if (!input) {
       throw new Error("Personal number is missing.");
     }
@@ -14,6 +15,11 @@ export function convertPersonalNumber(input: string | null | undefined): string 
   
     // Remove any whitespace.
     const trimmed = input.trim();
+
+    // Validate allowed characters (digits and max one dash)
+    if (!/^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(trimmed)) {
+      throw new Error("Social security number must contain only digits and possibly one dash(-).");
+    }
     
     let digitsOnly = trimmed.replace(/[^0-9]/g, '');
     let formatted;
@@ -62,3 +68,41 @@ export function convertPersonalNumber(input: string | null | undefined): string 
     const [_, year, month, day] = match;
     return `${year}-${month}-${day}`; // ISO format
   }
+
+
+
+export function convertOrgNumber(input: string | null | undefined): string {
+  if (!input) {
+    throw new Error("Organization number is missing.");
+  }
+
+  // Remove any whitespace.
+  const trimmed = input.trim();
+
+  // Validate allowed characters (digits and max one dash)
+  if (!/^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(trimmed)) {
+    throw new Error("Organization number must contain only digits and possibly one dash(-).");
+  }
+  
+  // Remove dash
+  const digitsOnly = trimmed.replace(/[^0-9]/g, '');
+  let formatted;
+
+  if (/^\d{10}$/.test(digitsOnly)) {
+    // Format: yymmddxxxx
+    const yy = digitsOnly.slice(0, 2);
+    const mmdd = digitsOnly.slice(2, 6);
+    const lastFour = digitsOnly.slice(6);
+    formatted = '16' + yy + mmdd + '-' + lastFour;
+  } else if (/^\d{12}$/.test(digitsOnly)) {
+    // Format: yyyymmddxxxx
+    if (trimmed.slice(0,2) !== '16') {
+      throw new Error("Organization number must start with 16.");
+    }
+    formatted = digitsOnly.slice(0, 8) + '-' + digitsOnly.slice(8);
+  }else {
+    throw new Error("Invalid Swedish organization number format.");
+  }
+
+  return formatted;
+}

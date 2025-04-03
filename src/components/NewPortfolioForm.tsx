@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { convertPersonalNumber } from "@/utils/stringUtils"
+import { convertOrgNumber, convertPersonalNumber } from "@/utils/stringUtils"
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,6 @@ import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper"
 import NewPortfolioSubmittionResult from "./NewPortfolioSubmittionResult"
 import { modelPortfolioMap } from "@/constant/modelPortfolio"
 import { definedPortfolioType } from "@/constant/portfolioType"
-import { Switch } from "./ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
 
 
@@ -35,7 +34,9 @@ const userPortfolioSchema = z.object({
     isCompany: z.boolean(),
     firstname: z.string(),
     surname: z.string(),
-    personalNumber: z.string() ,
+    personalNumber: z.string().refine((value) => {
+        return /^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(value)
+    },{message:"Social security number must contain only digits and possibly one dash(-)."}),
     address: z.string().min(5, "Address must be at least 5 characters."),
     address2: z.string().optional().nullable(),
     postalCode: z.string().min(4, "Postal code must be at least 4 characters."),
@@ -71,7 +72,7 @@ const userPortfolioSchema = z.object({
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["personalNumber"],
-                message: "PersonalNumber must be a valid Swedish organization number."
+                message: (error as Error).message
             });
         }
     }
@@ -85,14 +86,17 @@ const userPortfolioSchema = z.object({
             });
         }
 
-        if(!data.personalNumber || data.personalNumber.length < 10){
+        try{
+            convertOrgNumber(data.personalNumber)
+        }catch(e){
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["personalNumber"],
-                message: "Organization number must be at least 10 characters long."
+                message: (e as Error).message
             });
         }
-        if(modelPortfolioMap.get(data.portfolioTypeCode) === 'ISK'){
+
+        if(definedPortfolioType.get(data.portfolioTypeCode)?.id === 'ISK'){
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["portfolioTypeCode"],
@@ -269,33 +273,6 @@ export function NewPortfolioForm() {
                                         </FormItem>
                                     )}
                                 />
-                                {/*
-                                <FormField
-                                    control={form.control}
-                                    name="isCompany"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center justify-start rounded-lg border p-3 gap-3 mb-9">
-                                            <FormControl>
-                                                <Switch
-                                                checked={field.value}
-                                                onCheckedChange={(value) => {
-                                                    field.onChange(value)
-                                                    const currentType = form.getValues().portfolioTypeCode
-                                                    if(definedPortfolioType.get(currentType)?.id === 'ISK'){
-                                                        form.setValue("portfolioTypeCode", '')
-                                                    }
-                                                  }}
-                                                />
-                                            </FormControl>
-                                            <div className="space-y-0.5">
-                                                <FormLabel>Company Identity</FormLabel>
-                                                <FormDescription>
-                                                    Register account for a company
-                                                </FormDescription>
-                                            </div>
-                                        </FormItem>
-                                    )}
-                                />*/}
 
                                 <div className="text-sm mb-9">
                                     <p className="font-semibold">Create a new account for a {isCompany?'company':'private person'}.</p>
@@ -330,7 +307,18 @@ export function NewPortfolioForm() {
                                 <FormItem>
                                     <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field} />
+                                        <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field} onBlur={(e => {
+                                            const value = e.target.value
+                                            try{
+                                                const formatedValue = isCompany ? convertOrgNumber(value) : convertPersonalNumber(value)
+                                                form.setValue('personalNumber', formatedValue)
+                                            }catch(e){
+                                                form.setError('personalNumber', {
+                                                    type: 'custom',
+                                                    message: (e as Error).message
+                                                })
+                                            }
+                                        })}/>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -422,13 +410,21 @@ export function NewPortfolioForm() {
                         <FormField control={form.control} name="modelPortfolioCode" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Account Model</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
+                                <Select onValueChange={(value) => {
+                                        if (value === "__clear__") {
+                                            field.onChange("");
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                        }}
+                                        value={field.value ?? ""}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select account model" />
+                                            <SelectValue placeholder="No Model" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className="max-h-70">
+                                    <SelectItem value="__clear__">No Model</SelectItem>
                                         {
                                             [...modelPortfolioMap.entries()].map(([key, value]) => {
                                                 return <SelectItem key={value} value={key}>{key}</SelectItem>

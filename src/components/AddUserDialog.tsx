@@ -145,7 +145,14 @@ export function AddUserDialog() {
                                 <FormItem>
                                     <FormLabel>Personal Number*</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter personal number" {...field} />
+                                        <Input placeholder="Enter personal number" {...field} onBlur={(e => {
+                                            const value = e.target.value
+                                            try{
+                                                const formatedValue = convertPersonalNumber(value)
+                                                form.setValue('personalNumber', formatedValue)
+                                            }catch(e){
+                                            }
+                                        })}/>
                                     </FormControl>
                                     <FormDescription>Personal number will be used to determin wherether a user can access the system.</FormDescription>
                                     <FormMessage />

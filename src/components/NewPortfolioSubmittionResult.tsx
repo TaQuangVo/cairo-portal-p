@@ -10,7 +10,7 @@ import { CircleAlert, CircleCheck, CircleX, Copy, Terminal } from "lucide-react"
 import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
 import { Textarea } from "./ui/textarea";
 import { Separator } from "@/components/ui/separator"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Switch } from "./ui/switch";
@@ -68,6 +68,19 @@ function ContactSuportForm({data, error, defaultOpen, title, onCloseButtonPress}
 
 
 export default function NewPortfolioSubmittionResult({ data, error, onCloseButtonPress }: { data: NewPortfolioResponse | null, error: UnexpectedErrorType | null, onCloseButtonPress: () => void }) {
+    const [showBareWithMe, setShowBareWithMe] = useState(false);
+
+    useEffect(() => {
+        let timeout: NodeJS.Timeout;
+        if (!data && !error) {
+          timeout = setTimeout(() => {
+            setShowBareWithMe(true);
+          }, 3000);
+        }
+    
+        return () => clearTimeout(timeout);
+      }, [data, error]);
+    
     if (!data && !error) {
         return (
             <>
@@ -79,6 +92,11 @@ export default function NewPortfolioSubmittionResult({ data, error, onCloseButto
                 </DialogHeader>
                 <div className="flex flex-col justify-center items-center h-50 w-full">
                     <ClipLoader />
+                    {showBareWithMe && (
+                        <p className="text-sm text-muted-foreground mt-4">
+                        Bear with us... this is taking longer than usual.
+                        </p>
+                    )}
                 </div>
             </>
         )

@@ -130,14 +130,23 @@ export default function InputWithButton() {
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="socialSecurityNumber">Social security number</Label>
               <div className="flex">
-                <Input id="socialSecurityNumber" type="text"  placeholder="xxxxxxxx-xxxx" value={ssn} onChange={e=>setSsn(e.currentTarget.value)}/>
+                <Input id="socialSecurityNumber" type="text"  placeholder="xxxxxxxx-xxxx" value={ssn} onChange={e=>setSsn(e.currentTarget.value)} onBlur={(e => {
+                                  const value = e.target.value
+                                  try{
+                                      const formatedValue = convertPersonalNumber(value)
+                                      setSsn(formatedValue)
+                                  }catch(e){
+                                  }
+                              })}/>
                 <Button disabled={disableButon} onClick={handleGetLoginSession} className="ml-2">
                   <Image src="/bankid-icon.svg" alt="Hero" width={28} height={28} />
                   BankId
                   </Button>
               </div>
               <p className="text-sm text-red-600">{error}</p>
-              <Link href='/'><p className="text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p></Link>
+              <div className='flex justify-end mt-4'>
+                <Link className='inline' href='/'><p className="inline text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p></Link>
+              </div>
               {
                 currentTransaction && 
                 <BankIdLoginWithQrCodeComponent onComplete={onBankIdComplete} transactionId={currentTransaction.id}/>

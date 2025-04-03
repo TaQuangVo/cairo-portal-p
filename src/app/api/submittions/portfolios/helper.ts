@@ -2,7 +2,7 @@ import { z, ZodError } from "zod";
 import { v4 as uuidv4 } from 'uuid';
 import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
 import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload } from "@/lib/cairo.type";
-import { convertPersonalNumber, getBirthdateFromPersonNumber } from "@/utils/stringUtils";
+import { convertOrgNumber, convertPersonalNumber, getBirthdateFromPersonNumber } from "@/utils/stringUtils";
 import { getCurrentPortfolioCount } from "@/lib/db";
 import { definedPortfolioType } from "@/constant/portfolioType";
 import { modelPortfolioMap } from "@/constant/modelPortfolio";
@@ -37,7 +37,9 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
     isCompany: z.boolean(),
     firstname: z.string(),
     surname: z.string(),
-    personalNumber: z.string() ,
+    personalNumber: z.string().refine((value) => {
+        return /^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(value)
+    },{message:"Social security number must contain only digits and possibly one dash(-)."}),
     address: z.string().min(5, "Address must be at least 5 characters."),
     address2: z.string().optional().nullable(),
     postalCode: z.string().min(4, "Postal code must be at least 4 characters."),
@@ -73,7 +75,7 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["personalNumber"],
-                message: "PersonalNumber must be a valid Swedish organization number."
+                message: (error as Error).message
             });
         }
     }
@@ -87,14 +89,17 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
             });
         }
 
-        if(!data.personalNumber || data.personalNumber.length < 10){
+        try{
+            convertOrgNumber(data.personalNumber)
+        }catch(e){
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["personalNumber"],
-                message: "Organization number must be at least 10 characters long."
+                message: (e as Error).message
             });
         }
-        if(modelPortfolioMap.get(data.portfolioTypeCode) === 'ISK'){
+
+        if(definedPortfolioType.get(data.portfolioTypeCode)?.id === 'ISK'){
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["portfolioTypeCode"],
@@ -110,7 +115,7 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
     const accountCode = uuidv4(); 
     const portfolioCode = uuidv4();
 
-    const formatedPersonalNumber = !payload.isCompany ? convertPersonalNumber(payload.personalNumber) : payload.personalNumber
+    const formatedPersonalNumber = !payload.isCompany ? convertPersonalNumber(payload.personalNumber) : convertOrgNumber(payload.personalNumber)
     const dateOfBirth = !payload.isCompany ? getBirthdateFromPersonNumber(formatedPersonalNumber) : ''
     const today = new Date().toISOString().split('T')[0]
     const managerCode = 'daniel.johansson'
