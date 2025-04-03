@@ -116,13 +116,6 @@ export default function InputWithButton() {
 
   return (
     <div className="w-screen h-svh flex justify-center items-center flex-col relativ">
-      <div className='flex items-center font-semibold text-sm lg:text-md mb-10 underline absolute top-0 right-0 m-6'>
-        <Link href='https://peakam.se/'>PEAK</Link>
-        <X className="w-5 lg:w-5"/>
-        <Link href='https://sakra.se/sv/'>SÄKRA</Link>
-        <X className="w-5 lg:w-5"/>
-        <Link href='https://centevo.se/'>CENTEVO</Link>
-      </div>
       <div className='font-semibold mb-7 text-2xl flex items-center'>
         <Image src="/skra_logo.png" alt="Hero" width={30} height={30} />
         <p className='ml-2'>Säkra secure.</p>

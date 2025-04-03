@@ -1,8 +1,6 @@
 'use client'
-import { UserCreate } from "@/lib/db.type";
-import { SessionProvider, signIn } from "next-auth/react"
-import { Suspense } from "react";
-import React, { ReactNode } from 'react';
+import { signIn } from "next-auth/react"
+import React from 'react';
 
 
 export default function Test() {
