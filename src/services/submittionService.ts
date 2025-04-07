@@ -19,7 +19,6 @@ export async function saveResponseToSubmittion(newPortfolioResponse: NewPortfoli
         const save = await submittionCol.insertOne(newSubmittion);
         return save.insertedId;
     } catch (error) {
-        console.log(error)
         return null
     }
 }

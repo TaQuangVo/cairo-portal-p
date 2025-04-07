@@ -22,7 +22,6 @@ import {
     DialogContent,
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper"
 import NewPortfolioSubmittionResult from "./NewPortfolioSubmittionResult"
 import { modelPortfolioMap } from "@/constant/modelPortfolio"
 import { definedPortfolioType } from "@/constant/portfolioType"
@@ -131,8 +130,8 @@ export type UnexpectedErrorType = {
 export function NewPortfolioForm() {
     const [showSubmittionModule, setShowSubmittionModule] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [submittionResult, setSubmittionResult] = useState<NewPortfolioResponse | null>(null)
-    const [unexpectedError, setUnexpectedError] = useState<UnexpectedErrorType | null>(null)
+    const [submittionResult, setSubmittionResult] = useState<{portfolioCode:string, portfolioType: string, modelPortfolio:string|null} | null>(null)
+    const [submittionError, setSubmittionError] = useState<any|null>(null)
     const form = useForm<UserPortfolioFormValues>({
         resolver: zodResolver(userPortfolioSchema),
         defaultValues: formDefaultValues,
@@ -146,16 +145,16 @@ export function NewPortfolioForm() {
     function onCloseModule(open: boolean) {
         if (isLoading) return
 
-        if (submittionResult?.status === 'success') {
-            resetForm()
-        }
-
+        resetForm()
         setSubmittionResult(null)
         setShowSubmittionModule(open)
+        setSubmittionError(null)
     }
 
     async function onSubmit(data: UserPortfolioFormValues): Promise<void> {
         setShowSubmittionModule(true)
+        setSubmittionError(null)
+        setSubmittionResult(null)
         setIsLoading(true)
 
         const body = {
@@ -163,7 +162,7 @@ export function NewPortfolioForm() {
             personalNumber: !data.isCompany ? convertPersonalNumber(data.personalNumber) : convertOrgNumber(data.personalNumber)
         }
 
-        const response = await fetch("/api/submittions/portfolios", {
+        const response = await fetch("/api/submittions/v2/portfolios", {
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
             },
@@ -172,74 +171,31 @@ export function NewPortfolioForm() {
         })
 
         setIsLoading(false)
-        let responseData;
-        const contentType = response.headers.get("content-type");
 
-        try {
-            if (contentType?.includes("application/json")) {
-                responseData = await response.json();
-            } else {
-                responseData = await response.text();
+        if (response.ok) {
+            let responseData: { portfolioCode: string } = await response.json();
+            setSubmittionResult({
+                portfolioType: body.portfolioTypeCode,
+                modelPortfolio: body.modelPortfolioCode ?? null,
+                portfolioCode: responseData.portfolioCode,
+            })
+            toast("Portfolio created successfully!")
+        } else {
+            try{
+                let responseData = await response.json();
+                setSubmittionError({
+                    messages: responseData.messages,
+                    requestBody: body,
+                })
+            }catch(e){
+                setSubmittionError({
+                    messages: ['Something gone wrong!', (e as Error).message],
+                    requestBody: body,
+                })
             }
-        } catch (error) {
-            console.error("Failed to parse JSON:", error);
-            responseData = null;
-        }
-
-        if (response.status === 504) {
-            setShowSubmittionModule(false)
-            setUnexpectedError({
-                messages: "Request timed out. (Cairo might took too long to respond).",
-                requestBody: data,
-                response: response,
-                responseBody: responseData
-            })
-            toast("Request timed out. (Cairo took might too long to respond).")
-            return
-        }
-
-        if (typeof responseData === 'string') {
-            setUnexpectedError({
-                messages: responseData,
-                requestBody: data,
-                response: response,
-                responseBody: responseData
-            })
             toast("Failed to create portfolio!")
-            return
         }
-
-        if (responseData) {
-            setSubmittionResult(responseData as NewPortfolioResponse)
-
-            if (!responseData.status) {
-                setShowSubmittionModule(false)
-                setUnexpectedError(
-                    {
-                        messages: "unexpected response from server.",
-                        requestBody: data,
-                        response: response,
-                        responseBody: responseData
-                    })
-                toast("Unexpected response from server.")
-                return
-            }
-
-            if (response.ok) {
-                toast("Portfolio created successfully!")
-            } else {
-                toast("Failed to create portfolio!")
-            }
-            return
-        }
-
-        setUnexpectedError({
-            messages: "unexpected Error while creating portfolio.",
-            requestBody: data,
-            response: response,
-            responseBody: responseData
-        })
-        toast("Failed to create portfolio!")
+        return
     }
 
     const isCompany = form.watch("isCompany");
@@ -255,7 +211,7 @@ export function NewPortfolioForm() {
                         render={({ field }) => (
                             <FormItem >
                                 <FormControl>
-                                    <Tabs value={field.value ? 'company' : 'private'} className="w-[400px] mx-auto " onValueChange={(value: string) => {
+                                    <Tabs value={field.value ? 'company' : 'private'} className=" lg:w-[400px] mx-auto " onValueChange={(value: string) => {
                                         field.onChange(value === 'company')
                                         const currentType = form.getValues().portfolioTypeCode
                                         if (definedPortfolioType.get(currentType)?.id === 'ISK') {
@@ -434,8 +390,8 @@ export function NewPortfolioForm() {
                 </form>
             </Form>
             <Dialog open={showSubmittionModule} onOpenChange={onCloseModule}>
-                <DialogContent className="sm:max-w-[525px]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
-                    <NewPortfolioSubmittionResult data={submittionResult} error={unexpectedError} onCloseButtonPress={() => onCloseModule(false)} />
+                <DialogContent className="lg:max-w-[525px] overflow-x-visible" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()} onOpenAutoFocus={(e) => e.preventDefault()}>
+                    <NewPortfolioSubmittionResult data={submittionResult} error={submittionError?.messages} errorData={submittionError} onCloseButtonPress={() => onCloseModule(false)} />
                 </DialogContent>
             </Dialog>
         </>

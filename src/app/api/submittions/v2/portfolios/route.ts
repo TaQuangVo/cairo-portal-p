@@ -30,9 +30,10 @@ export async function POST (req: NextRequest){
         const submissionResultId = new ObjectId().toHexString()
 
         const result = await client.publishJSON({
-          url: "https://lucky-plants-vanish.loca.lt/api/qhandler/portfolio",
+          url: "https://tidy-pillows-behave.loca.lt/api/qhandler/portfolio",
           body: {
             ...requestBodies,
+            rawBody: body,
             constext: 
                 {
                     submitterId: userId,
@@ -54,6 +55,6 @@ export async function POST (req: NextRequest){
 
         return Response.json({portfolioCode: requestBodies.portfolio.portfolioDescription}, {status: 201})
     } catch(e){
-        return Response.json({message:[(e as Error).message]}, {status: 500})
+        return Response.json({messages:[(e as Error).message]}, {status: 500})
     }
 }
