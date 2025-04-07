@@ -7,7 +7,6 @@ import { toast } from "sonner"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -19,8 +18,8 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { convertOrgNumber, convertPersonalNumber } from "@/utils/stringUtils"
 import {
-  Dialog,
-  DialogContent,
+    Dialog,
+    DialogContent,
 } from "@/components/ui/dialog"
 import { useState } from "react"
 import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper"
@@ -36,7 +35,7 @@ const userPortfolioSchema = z.object({
     surname: z.string(),
     personalNumber: z.string().refine((value) => {
         return /^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(value)
-    },{message:"Social security number must contain only digits and possibly one dash(-)."}),
+    }, { message: "Social security number must contain only digits and possibly one dash(-)." }),
     address: z.string().min(5, "Address must be at least 5 characters."),
     address2: z.string().optional().nullable(),
     postalCode: z.string().min(4, "Postal code must be at least 4 characters."),
@@ -51,14 +50,14 @@ const userPortfolioSchema = z.object({
     }, { message: "Invalid model portfolio code." }).or(z.literal('')).optional().nullable(),
 }).superRefine((data, ctx) => {
     if (!data.isCompany) {
-        if(!data.firstname || data.firstname.length < 2){
+        if (!data.firstname || data.firstname.length < 2) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["firstname"],
                 message: "Firstname must be at least 2 characters."
             });
         }
-        if(!data.surname || data.surname.length < 2){
+        if (!data.surname || data.surname.length < 2) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["surname"],
@@ -76,9 +75,8 @@ const userPortfolioSchema = z.object({
             });
         }
     }
-
     if (data.isCompany) {
-        if(!data.surname || data.surname.length < 2){
+        if (!data.surname || data.surname.length < 2) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["surname"],
@@ -86,9 +84,9 @@ const userPortfolioSchema = z.object({
             });
         }
 
-        try{
+        try {
             convertOrgNumber(data.personalNumber)
-        }catch(e){
+        } catch (e) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["personalNumber"],
@@ -96,7 +94,7 @@ const userPortfolioSchema = z.object({
             });
         }
 
-        if(definedPortfolioType.get(data.portfolioTypeCode)?.id === 'ISK'){
+        if (definedPortfolioType.get(data.portfolioTypeCode)?.id === 'ISK') {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["portfolioTypeCode"],
@@ -133,8 +131,8 @@ export type UnexpectedErrorType = {
 export function NewPortfolioForm() {
     const [showSubmittionModule, setShowSubmittionModule] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [submittionResult, setSubmittionResult] = useState<NewPortfolioResponse|null>(null)
-    const [unexpectedError, setUnexpectedError] = useState<UnexpectedErrorType|null>(null)
+    const [submittionResult, setSubmittionResult] = useState<NewPortfolioResponse | null>(null)
+    const [unexpectedError, setUnexpectedError] = useState<UnexpectedErrorType | null>(null)
     const form = useForm<UserPortfolioFormValues>({
         resolver: zodResolver(userPortfolioSchema),
         defaultValues: formDefaultValues,
@@ -142,13 +140,13 @@ export function NewPortfolioForm() {
     })
 
     function resetForm() {
-        form.reset({...formDefaultValues, portfolioTypeCode:undefined})
+        form.reset({ ...formDefaultValues, portfolioTypeCode: undefined })
     }
 
     function onCloseModule(open: boolean) {
-        if(isLoading) return
+        if (isLoading) return
 
-        if(submittionResult?.status === 'success'){
+        if (submittionResult?.status === 'success') {
             resetForm()
         }
 
@@ -161,8 +159,8 @@ export function NewPortfolioForm() {
         setIsLoading(true)
 
         const body = {
-            ...data, 
-            personalNumber: !data.isCompany ? convertPersonalNumber(data.personalNumber): data.personalNumber
+            ...data,
+            personalNumber: !data.isCompany ? convertPersonalNumber(data.personalNumber) : convertOrgNumber(data.personalNumber)
         }
 
         const response = await fetch("/api/submittions/portfolios", {
@@ -188,10 +186,10 @@ export function NewPortfolioForm() {
             responseData = null;
         }
 
-        if(response.status === 504){
+        if (response.status === 504) {
             setShowSubmittionModule(false)
-            setUnexpectedError( {
-                messages:"Request timed out. (Cairo might took too long to respond).",
+            setUnexpectedError({
+                messages: "Request timed out. (Cairo might took too long to respond).",
                 requestBody: data,
                 response: response,
                 responseBody: responseData
@@ -200,7 +198,7 @@ export function NewPortfolioForm() {
             return
         }
 
-        if(typeof responseData === 'string'){
+        if (typeof responseData === 'string') {
             setUnexpectedError({
                 messages: responseData,
                 requestBody: data,
@@ -211,10 +209,10 @@ export function NewPortfolioForm() {
             return
         }
 
-        if(responseData){
+        if (responseData) {
             setSubmittionResult(responseData as NewPortfolioResponse)
 
-            if(!responseData.status){
+            if (!responseData.status) {
                 setShowSubmittionModule(false)
                 setUnexpectedError(
                     {
@@ -251,194 +249,181 @@ export function NewPortfolioForm() {
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
 
-                <FormField
-                                    control={form.control}
-                                    name="isCompany"
-                                    render={({ field }) => (
-                                        <FormItem >
-                                            <FormControl>
-                                            <Tabs value={field.value?'company':'private'} className="w-[400px] mx-auto " onValueChange={(value:string)=>{
-                                                field.onChange(value === 'company')
-                                                const currentType = form.getValues().portfolioTypeCode
-                                                if(definedPortfolioType.get(currentType)?.id === 'ISK'){
-                                                    form.setValue("portfolioTypeCode", '')
-                                                }
-                                            }}>
-                                                <TabsList className="grid w-full grid-cols-2"> 
-                                                    <TabsTrigger value="private">Private Person</TabsTrigger>
-                                                    <TabsTrigger value="company">Organization</TabsTrigger>
-                                                </TabsList>
-                                            </Tabs>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
+                    <FormField
+                        control={form.control}
+                        name="isCompany"
+                        render={({ field }) => (
+                            <FormItem >
+                                <FormControl>
+                                    <Tabs value={field.value ? 'company' : 'private'} className="w-[400px] mx-auto " onValueChange={(value: string) => {
+                                        field.onChange(value === 'company')
+                                        const currentType = form.getValues().portfolioTypeCode
+                                        if (definedPortfolioType.get(currentType)?.id === 'ISK') {
+                                            form.setValue("portfolioTypeCode", '')
+                                        }
+                                    }}>
+                                        <TabsList className="grid w-full grid-cols-2">
+                                            <TabsTrigger value="private">Private Person</TabsTrigger>
+                                            <TabsTrigger value="company">Organization</TabsTrigger>
+                                        </TabsList>
+                                    </Tabs>
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
 
-                                <div className="text-sm mb-9">
-                                    <p className="font-semibold">Create a new account for a {isCompany?'company':'private person'}.</p>
-                                    <p>(If the customer does not already exist, one will be created automatically before the account is added)</p>
-                                </div>
+                    <div className="text-sm mb-9">
+                        <p className="font-semibold">Create a new account for a {isCompany ? 'company' : 'private person'}.</p>
+                        <p>(If the customer does not already exist, one will be created automatically before the account is added)</p>
+                    </div>
 
-                                {!isCompany && (
-                                    <FormField
-                                        control={form.control}
-                                        name="firstname"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>First Name*</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Enter first name" {...field} value={field.value ?? ""}/>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                )}
-                                <FormField control={form.control} name="surname" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{isCompany ? "Company Name*" : "Surname*"}</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Enter surname" {...field} value={field.value ?? ""}/>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                            <FormField control={form.control} name="personalNumber" render={({ field }) => (
+                    {!isCompany && (
+                        <FormField
+                            control={form.control}
+                            name="firstname"
+                            render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
+                                    <FormLabel>First Name*</FormLabel>
                                     <FormControl>
-                                        <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field} onBlur={(e => {
-                                            const value = e.target.value
-                                            try{
-                                                const formatedValue = isCompany ? convertOrgNumber(value) : convertPersonalNumber(value)
-                                                form.setValue('personalNumber', formatedValue)
-                                            }catch(e){
-                                                form.setError('personalNumber', {
-                                                    type: 'custom',
-                                                    message: (e as Error).message
-                                                })
-                                            }
-                                        })}/>
+                                        <Input placeholder="Enter first name" {...field} value={field.value ?? ""} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
-                            )} />
-                            <FormField control={form.control} name="address" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Address*</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Enter address" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            {/*
-                            <FormField control={form.control} name="address2" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Address 2 (Optional)</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Enter additional address" {...field} value={field.value ?? ""} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            */}
-                            <div className="flex">
-                                <FormField control={form.control} name="postalCode" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Postal Code*</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Enter postal code" {...field} value={field.value ?? ""} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                                <FormField control={form.control} name="city" render={({ field }) => (
-                                    <FormItem className="ml-5">
-                                        <FormLabel>City*</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Enter city" {...field}/>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                            </div>
-                            <FormField control={form.control} name="mobile" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Mobile (Optional)</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Enter mobile number" {...field} value={field.value ?? ''}/>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="emailAddress" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email (Optional)</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Enter email" {...field} value={field.value ?? ""} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
+                            )}
+                        />
+                    )}
+                    <FormField control={form.control} name="surname" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>{isCompany ? "Company Name*" : "Surname*"}</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Enter surname" {...field} value={field.value ?? ""} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="personalNumber" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
+                            <FormControl>
+                                <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field} onBlur={(e => {
+                                    const value = e.target.value
+                                    try {
+                                        const formatedValue = isCompany ? convertOrgNumber(value) : convertPersonalNumber(value)
+                                        form.setValue('personalNumber', formatedValue)
+                                    } catch (e) {
+                                        form.setError('personalNumber', {
+                                            type: 'custom',
+                                            message: (e as Error).message
+                                        })
+                                    }
+                                })} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="address" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Address*</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Enter address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <div className="flex">
+                        <FormField control={form.control} name="postalCode" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Postal Code*</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Enter postal code" {...field} value={field.value ?? ""} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="city" render={({ field }) => (
+                            <FormItem className="ml-5">
+                                <FormLabel>City*</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Enter city" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+                    <FormField control={form.control} name="mobile" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Mobile (Optional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Enter mobile number" {...field} value={field.value ?? ''} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="emailAddress" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email (Optional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Enter email" {...field} value={field.value ?? ""} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                     <Separator />
-
-                    {/* Portfolio Configuration Section */}
-                        <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Account Type*</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select account type" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {
-                                            [...definedPortfolioType.entries()].map(([key, value]) => {
-                                                if(isCompany && value.id === 'ISK'){
-                                                    return null
-                                                }
-                                                return <SelectItem key={value.id} value={key}>{key}</SelectItem>
-                                            })
-                                        }
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="modelPortfolioCode" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Account Model</FormLabel>
-                                <Select onValueChange={(value) => {
-                                        if (value === "__clear__") {
-                                            field.onChange("");
-                                        } else {
-                                            field.onChange(value);
-                                        }
-                                        }}
-                                        value={field.value ?? ""}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="No Model" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent className="max-h-70">
+                    <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Account Type*</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select account type" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {
+                                        [...definedPortfolioType.entries()].map(([key, value]) => {
+                                            if (isCompany && value.id === 'ISK') {
+                                                return null
+                                            }
+                                            return <SelectItem key={value.id} value={key}>{key}</SelectItem>
+                                        })
+                                    }
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="modelPortfolioCode" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Account Model</FormLabel>
+                            <Select onValueChange={(value) => {
+                                if (value === "__clear__") {
+                                    field.onChange("");
+                                } else {
+                                    field.onChange(value);
+                                }
+                            }}
+                                value={field.value ?? ""}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="No Model" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="max-h-70">
                                     <SelectItem value="__clear__">No Model</SelectItem>
-                                        {
-                                            [...modelPortfolioMap.entries()].map(([key, value]) => {
-                                                return <SelectItem key={value} value={key}>{key}</SelectItem>
-                                            })
-                                        }
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+                                    {
+                                        [...modelPortfolioMap.entries()].map(([key, value]) => {
+                                            return <SelectItem key={value} value={key}>{key}</SelectItem>
+                                        })
+                                    }
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
 
                     <div className="flex flex-col items-end mt-20 mb-9">
                         <div>
-                            <Button type="button" variant='outline' className="mr-4" disabled={!form.formState.isDirty} onClick={()=>resetForm()}>Clear formular</Button>
+                            <Button type="button" variant='outline' className="mr-4" disabled={!form.formState.isDirty} onClick={() => resetForm()}>Clear formular</Button>
                             <Button type="submit" disabled={!form.formState.isValid}>Create</Button>
                         </div>
                         {
@@ -450,7 +435,7 @@ export function NewPortfolioForm() {
             </Form>
             <Dialog open={showSubmittionModule} onOpenChange={onCloseModule}>
                 <DialogContent className="sm:max-w-[525px]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
-                    <NewPortfolioSubmittionResult data={submittionResult} error={unexpectedError} onCloseButtonPress={() => onCloseModule(false)}/>
+                    <NewPortfolioSubmittionResult data={submittionResult} error={unexpectedError} onCloseButtonPress={() => onCloseModule(false)} />
                 </DialogContent>
             </Dialog>
         </>

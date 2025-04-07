@@ -5,9 +5,7 @@ import { ZodError } from "zod"
 import { CairoCustomer } from "@/lib/cairo.type"
 import { getToken } from "next-auth/jwt"
 import { saveResponseToSubmittion } from "@/services/submittionService"
-import { getCurrentPortfolioCount } from "@/lib/db"
-import { definedPortfolioType } from "@/constant/portfolioType"
-import { convertPersonalNumber } from "@/utils/stringUtils"
+
 
 // POST /api/submittions/portfolios
 export async function POST (req: NextRequest){
@@ -51,7 +49,7 @@ export async function POST (req: NextRequest){
                 dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
                 data: response
             }
-            await saveResponseToSubmittion(resData, userId)
+            await saveResponseToSubmittion(resData, userId, null)
             return Response.json(resData, {status: 500})
         }
     
@@ -64,7 +62,7 @@ export async function POST (req: NextRequest){
                 dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
                 data: response
             }
-            await saveResponseToSubmittion(resData, userId)
+            await saveResponseToSubmittion(resData, userId, null)
             return Response.json(resData, {status: 500})
         }
     
@@ -77,7 +75,7 @@ export async function POST (req: NextRequest){
                 dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
                 data: response
             }
-            await saveResponseToSubmittion(resData, userId)
+            await saveResponseToSubmittion(resData, userId, null)
             return Response.json(resData, {status: 500})
         }
     
@@ -90,7 +88,7 @@ export async function POST (req: NextRequest){
             data: response
         }
 
-        await saveResponseToSubmittion(resData, userId)
+        await saveResponseToSubmittion(resData, userId, null)
         return Response.json(resData, {status: 201})
     } catch(e){
         console.log(e)
@@ -115,7 +113,7 @@ export async function POST (req: NextRequest){
             dataType: 'Error',
             data: e as Error
         }
-        await saveResponseToSubmittion(resData, userId)
+        await saveResponseToSubmittion(resData, userId, null)
         return Response.json(resData, {status: 500})
     }
 }

@@ -4,22 +4,54 @@ import { DBBasePortfolioSubmittions, DBPortfolioSubmittions } from "../lib/db.ty
 import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper";
 
 
-export async function saveResponseToSubmittion(newPortfolioResponse: NewPortfolioResponse, createdBy:string): Promise<void> {
+export async function saveResponseToSubmittion(newPortfolioResponse: NewPortfolioResponse, createdBy:string, id: string| null): Promise<string | null> {
     try {
         const submittionCol = await getSubmittionCollection();
 
         const newSubmittion: DBPortfolioSubmittions = {
             ...newPortfolioResponse,
-            _id: new ObjectId().toHexString(),
+            _id: id ? id : new ObjectId().toHexString(),
             createdAt: new Date(),
+            updatedAt: new Date(),
             createdBy: createdBy,
         };
 
-        await submittionCol.insertOne(newSubmittion);
+        const save = await submittionCol.insertOne(newSubmittion);
+        return save.insertedId;
     } catch (error) {
         console.log(error)
+        return null
     }
 }
+
+export async function updateResponseToSubmission(
+    updatedPortfolioResponse: Partial<NewPortfolioResponse>, 
+    id: string
+  ): Promise<boolean> {
+    try {
+      const submissionCol = await getSubmittionCollection();
+
+      const submittion = await submissionCol.findOne({ _id: id });
+      if(!submittion) {
+        return false;
+      }
+  
+      const updateData: Partial<DBPortfolioSubmittions> = {
+        ...updatedPortfolioResponse,
+        updatedAt: new Date(),
+      };
+  
+      const result = await submissionCol.updateOne(
+        { _id: id },
+        { $set: updateData }
+      );
+  
+      return result.modifiedCount > 0;
+    } catch (error) {
+      return false;
+    }
+  }
+  
 
 export async function getSubmittionById(submittionId: string): Promise<DBBasePortfolioSubmittions | null> {
     try {

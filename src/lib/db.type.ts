@@ -24,12 +24,13 @@ export type UserUpdate = Omit<DBUser, "createdAt" | "updatedAt">;
 
 export interface DBBasePortfolioSubmittions {
     _id: string;
-    status: 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
+    status: 'pending' | 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
     requestType: 'Create Portfolio';
     requestBody: CustomerAccountPortfolioCreationPayload;
     messages: string;
     createdBy: string;
     createdAt: Date;
+    updatedAt: Date;
 }
 
 export type DBPortfolioSubmittions =
@@ -48,6 +49,10 @@ export type DBPortfolioSubmittions =
     | (DBBasePortfolioSubmittions & {
         dataType: 'ZodError';
         data: ZodError;
+    })
+    | (DBBasePortfolioSubmittions & {
+        dataType: null;
+        data: null;
     });
 
 

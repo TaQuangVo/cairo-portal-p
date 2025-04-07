@@ -7,36 +7,6 @@ import { getCurrentPortfolioCount } from "@/lib/db";
 import { definedPortfolioType } from "@/constant/portfolioType";
 import { modelPortfolioMap } from "@/constant/modelPortfolio";
 
-
-export interface BaseNewPortfolioResponse {
-    status: 'pending' | 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
-    requestType: 'Create Portfolio';
-    requestBody: CustomerAccountPortfolioCreationPayload;
-    messages: string;
-}
-
-export type NewPortfolioResponse =
-    | (BaseNewPortfolioResponse & {
-          dataType: 'SequentialCustomerAccountPortfolioCreatioResult';
-          data: SequentialCustomerAccountPortfolioCreatioResult;
-      })
-    | (BaseNewPortfolioResponse & {
-          dataType: 'CairoCustomer';
-          data: CairoCustomer;
-      })
-    | (BaseNewPortfolioResponse & {
-        dataType: 'Error';
-        data: Error;
-    })
-    | (BaseNewPortfolioResponse & {
-        dataType: 'ZodError';
-        data: ZodError;
-    })
-    | (BaseNewPortfolioResponse & {
-        dataType: null;
-        data: null;
-    });
-
 export const customerAccountPortfolioCreationPayloadSchema = z.object({
     isCompany: z.boolean(),
     firstname: z.string(),

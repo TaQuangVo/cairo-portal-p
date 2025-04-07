@@ -65,14 +65,15 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     const getCustomerResult = await getCustomerByPersonalNumber(customerCreationPayload.organizationId)
     let existingCustomerCode: string | undefined
 
-    // if customer alredy exist and not skipped
-    if(getCustomerResult.status === 'success' && getCustomerResult.response?.data?.results[0] && !muteWarning.includes('SKIP CUSTOMER CREATION')){
-        throw new CreationWaring<CairoCustomer>('Customer with personal number ' + customerCreationPayload.organizationId + ' already exist.', 'SKIP CUSTOMER CREATION', getCustomerResult.response!.data!.results[0])
 
-    // if customer alredy exist and skipped
-    }else if(getCustomerResult.status === 'success' && getCustomerResult.response?.data?.results[0] && muteWarning.includes('SKIP CUSTOMER CREATION')){
+    let notSkipCustomerCreationIfExist = getCustomerResult.status === 'success' && getCustomerResult.response?.data?.results[0] && !muteWarning.includes('SKIP CUSTOMER CREATION')
+    let skipCustomerCreationIfExist = getCustomerResult.status === 'success' && getCustomerResult.response?.data?.results[0] && muteWarning.includes('SKIP CUSTOMER CREATION')
+
+    if(notSkipCustomerCreationIfExist){
+        throw new CreationWaring<CairoCustomer>('Customer with personal number ' + customerCreationPayload.organizationId + ' already exist.', 'SKIP CUSTOMER CREATION', getCustomerResult.response!.data!.results[0])
+    }else if(skipCustomerCreationIfExist){
         skipCustomerCreation = true
-        existingCustomerCode = getCustomerResult.response.data.results[0].customerCode
+        existingCustomerCode = getCustomerResult.response!.data!.results[0].customerCode
         if(existingCustomerCode === undefined){
             return result
         }
@@ -89,8 +90,15 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
         result.customerCreation.statusCode = customerCreationResponse.statusCode
         result.customerCreation.response = customerCreationResponse 
 
-        if(customerCreationResponse.status !== 'success'){
+        const customerAlreadyExistConflict = customerCreationResponse.statusCode === 409
+                                        && customerCreationResponse.body &&
+                                        customerCreationResponse.body === `The customer already exist. CustomerCode='${customerCreationPayload.organizationId}'`
+        if(customerCreationResponse.status !== 'success' && !customerAlreadyExistConflict){
             return result
+        }
+
+        if(customerAlreadyExistConflict){
+            result.customerCreation.status = 'skipped'
         }
     }
 
@@ -100,8 +108,16 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     result.accountCreation.statusCode = accountCreationResponse.statusCode
     result.accountCreation.response = accountCreationResponse
 
-    if(accountCreationResponse.status !== 'success'){
+    const accountAlreadyExistConflict = accountCreationResponse.statusCode === 409 
+                                    && accountCreationResponse.body && 
+                                    accountCreationResponse.body === `An account with accountCode '${accountCreationPayload.accountCode}' already exist.`
+
+    if(accountCreationResponse.status !== 'success' && !accountAlreadyExistConflict){
         return result
+    }
+
+    if(accountAlreadyExistConflict){
+        result.accountCreation.status = 'skipped'
     }
 
     // Create portfolio
@@ -109,6 +125,14 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     result.portfolioCreation.status = portfolioCreationResponse.status
     result.portfolioCreation.statusCode = portfolioCreationResponse.statusCode
     result.portfolioCreation.response = portfolioCreationResponse
+
+    const portfolioAlreadyExistConflict = portfolioCreationResponse.statusCode === 409
+                                        && portfolioCreationResponse.body &&
+                                        portfolioCreationResponse.body === `A portfolio with portfolioCode '${portfolioCreationPayload.portfolioCode}' already exist.`
+    
+    if(portfolioAlreadyExistConflict){
+        result.portfolioCreation.status = 'skipped'
+    }
 
     return result
 }
