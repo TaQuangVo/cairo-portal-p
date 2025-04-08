@@ -66,28 +66,29 @@ export async function getSubmittionById(submittionId: string): Promise<DBBasePor
 export async function getSubmittions(
     userId: string | null,
     personalNumber: string | null,
-    status: DBBasePortfolioSubmittions["status"] | null,
-    page: number = 1, // Default page 1
-    limit: number = 20 // Default limit 20
-): Promise<DBBasePortfolioSubmittions[]> {
+    status: DBPortfolioSubmittions["status"] | null,
+    page: number = 0, // Default page 1
+    limit: number = 10 // Default limit 20
+): Promise<{submissions:DBPortfolioSubmittions[], total:number}> {
     try {
         const submittionCol = await getSubmittionCollection();
 
         const query: Record<string, any> = {};
         if (userId) query.createdBy = userId;
-        if (personalNumber) query["requestBody.personalNumber"] = personalNumber;
         if (status) query.status = status;
+        if (personalNumber) {
+          query["requestBody.personalNumber"] = { $regex: personalNumber, $options: "i" }; // partial match
+        }
 
-        const skip = (page - 1) * limit;
-
-        const users = await submittionCol
+        const total = await submittionCol.countDocuments(query);
+        const submissions = await submittionCol
             .find(query) // Apply filters
-            .skip(skip)  // Skip documents for pagination
+            .skip(page * limit)  // Skip documents for pagination
             .limit(limit) // Limit the number of results
             .sort({ createdAt: -1 }) // Sort by creation date (newest first)
             .toArray();
 
-        return users;
+        return {submissions, total};
     } catch (error) {
         console.error("Error fetching users:", error);
         throw new Error(`Failed to fetch users:  ${error instanceof Error ? error.message : error}`);

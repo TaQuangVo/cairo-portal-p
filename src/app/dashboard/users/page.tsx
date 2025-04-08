@@ -18,12 +18,8 @@ export default async function Page() {
         return redirect("/dashboard");
     }
 
-    let users = await getUsers()
-
-    users = users.map((user) => ({
-        ...user,
-        _id: user._id.toString(),
-    }));
+    let users = await getUsers(0, 3)
+    console.log('total: ' + users.total)
 
     return (
         <>

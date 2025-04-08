@@ -26,13 +26,17 @@ export async function createUser(user: UserCreate): Promise<DBUser> {
     }
 }
 
-export async function getUsers(): Promise<DBUser[]> {
+export async function getUsers(page:number, limit:number): Promise<{users:DBUser[], total:number}> {
     try {
         const userCol = await getUserCollection();
         
-        const users = await userCol.find().toArray();
+        const total = await userCol.countDocuments();
+        const users = await userCol.find()        
+            .skip(page * limit)
+            .limit(limit)
+            .toArray();
         
-        return users;
+        return {users, total};
     } catch (error) {
         console.error("Error fetching users:", error);
         throw new Error(`Failed to fetch users:  ${error instanceof Error ? error.message : error}`);
@@ -50,6 +54,29 @@ export async function getUserByPersonalNumber(personalNumber: string): Promise<D
         throw new Error(`Failed to fetch user by ID: ${error instanceof Error ? error.message : error}`);
     }
 }
+
+export async function searchUsersByPersonalNumber(query: string, page:number, limit:number): Promise<{users:DBUser[], total:number}> {
+    try {
+      const userCol = await getUserCollection();
+  
+
+      const filter = {
+        personalNumber: { $regex: query, $options: "i" }, // case-insensitive partial match
+      }
+
+      const total = await userCol.countDocuments(filter);
+      const users = await userCol
+        .find(filter)
+        .skip(page * limit)
+        .limit(limit)
+        .toArray();
+  
+      return {users, total};
+    } catch (error) {
+      throw new Error(`Failed to search users: ${error instanceof Error ? error.message : error}`);
+    }
+  }
+
 
 export async function getUserById(id: string): Promise<DBUser | null> {
     try {

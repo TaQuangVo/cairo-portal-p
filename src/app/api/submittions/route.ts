@@ -22,11 +22,11 @@ export async function GET (req: NextRequest){
 
     // Extract query parameters and apply defaults
     const { searchParams } = req.nextUrl;
-    const personalNumber = searchParams.get("personalNumber");
+    const personalNumber = searchParams.get("searchPersonalNumber");
     let userIdParam = searchParams.get("userId");
     const statusParam = searchParams.get("status") as DBBasePortfolioSubmittions["status"] | null;
-    const page = parseInt(searchParams.get("page") || "1", 10); // Default page 1
-    const limit = parseInt(searchParams.get("limit") || "20", 10); // Default limit 20
+    const page = parseInt(searchParams.get("page") || "1", 0); // Default page 1
+    const limit = parseInt(searchParams.get("limit") || "10", 10); // Default limit 20
 
     // If the user is not an admin, they can only view their own submittions
     if(userRole !== 'admin' && userIdParam !== userId){
