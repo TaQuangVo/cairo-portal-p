@@ -30,7 +30,7 @@ export async function POST (req: NextRequest){
         const submissionResultId = new ObjectId().toHexString()
 
         const result = await client.publishJSON({
-          url: "https://tidy-pillows-behave.loca.lt/api/qhandler/portfolio",
+          url: "https://icy-paths-stick.loca.lt/api/qhandler/portfolio",
           body: {
             ...requestBodies,
             rawBody: body,

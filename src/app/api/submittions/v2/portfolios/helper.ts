@@ -1,7 +1,7 @@
 import { z, ZodError } from "zod";
 import { v4 as uuidv4 } from 'uuid';
 import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
-import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload } from "@/lib/cairo.type";
+import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload, CairoSubscriptionCreationPayload } from "@/lib/cairo.type";
 import { convertOrgNumber, convertPersonalNumber, getBirthdateFromPersonNumber } from "@/utils/stringUtils";
 import { getCurrentPortfolioCount } from "@/lib/db";
 import { definedPortfolioType } from "@/constant/portfolioType";
@@ -11,9 +11,12 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
     isCompany: z.boolean(),
     firstname: z.string(),
     surname: z.string(),
+    feeSubscription: z.number()
+        .min(0.2, { message: "Subscription fee must be at least 0.2" })
+        .max(2.0, { message: "Subscription fee must not exceed 2.0" }),
     personalNumber: z.string().refine((value) => {
         return /^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(value)
-    },{message:"Social security number must contain only digits and possibly one dash(-)."}),
+    }, { message: "Social security number must contain only digits and possibly one dash(-)." }),
     address: z.string().min(5, "Address must be at least 5 characters."),
     address2: z.string().optional().nullable(),
     postalCode: z.string().min(4, "Postal code must be at least 4 characters."),
@@ -28,14 +31,14 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
     }, { message: "Invalid model portfolio code." }).or(z.literal('')).optional().nullable(),
 }).superRefine((data, ctx) => {
     if (!data.isCompany) {
-        if(!data.firstname || data.firstname.length < 2){
+        if (!data.firstname || data.firstname.length < 2) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["firstname"],
                 message: "Firstname must be at least 2 characters."
             });
         }
-        if(!data.surname || data.surname.length < 2){
+        if (!data.surname || data.surname.length < 2) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["surname"],
@@ -53,9 +56,8 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
             });
         }
     }
-
     if (data.isCompany) {
-        if(!data.surname || data.surname.length < 2){
+        if (!data.surname || data.surname.length < 2) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["surname"],
@@ -63,9 +65,9 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
             });
         }
 
-        try{
+        try {
             convertOrgNumber(data.personalNumber)
-        }catch(e){
+        } catch (e) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["personalNumber"],
@@ -73,7 +75,7 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
             });
         }
 
-        if(definedPortfolioType.get(data.portfolioTypeCode)?.id === 'ISK'){
+        if (definedPortfolioType.get(data.portfolioTypeCode)?.id === 'ISK') {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["portfolioTypeCode"],
@@ -82,7 +84,6 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
         }
     }
 });
-
 
 export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCreationPayload){
     const customerCode = uuidv4();
@@ -173,10 +174,36 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
         ]
     }
 
+    const subscriptions: CairoSubscriptionCreationPayload[] = []
+    if(!payload.modelPortfolioCode || payload.modelPortfolioCode === ''){
+        subscriptions.push({
+            subscriptionCode: 'PORTFOLIOFEE',
+            portfolioCode: portfolioCode,
+            fromDate: today,
+            value: 0.95
+        })
+        subscriptions.push({
+            subscriptionCode: 'CONTRIBUTIONFEE',
+            portfolioCode: portfolioCode,
+            fromDate: today,
+            value: payload.feeSubscription
+        })
+    }else{
+        subscriptions.push({
+            subscriptionCode: 'PerformanceFeeYear',
+            portfolioCode: portfolioCode,
+            fromDate: today,
+            value: payload.feeSubscription
+        })
+    }
+
+
+
     return {
         customer: customerPayload,
         account: accountPayload,
-        portfolio: portfolioPayload
+        portfolio: portfolioPayload,
+        subscriptions: subscriptions
     }
 }
 

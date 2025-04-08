@@ -138,3 +138,23 @@ export type CairoPortfolioCreationPayload = Required<Pick<CairoPortfolio,
 
 export type CairoPortfolioCreationResponse = Required<Pick<CairoPortfolio, 'portfolioCode' | 'portfolioDescription'>>;
 
+export type CairoSubscription = {
+    subscriptionId: number,
+    subscriptionCode: string,
+    subscriptionDescription: string,
+    portfolioCode: string,
+    portfolioDescription: string,
+    fromDate: string,
+    toDate: string,
+    value: number,
+    updateDate: string
+}
+
+export type CairoSubscriptionCreationPayload = Required<Pick<CairoSubscription,
+    'subscriptionCode' |
+    'portfolioCode' |
+    'fromDate' |
+    'value'>> & 
+    Partial<Pick<CairoSubscription, 'toDate'>>;
+
+export type CairoSubscriptionCreationResponse = Required<Pick<CairoSubscription, 'subscriptionId'>>;

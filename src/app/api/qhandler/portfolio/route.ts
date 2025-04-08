@@ -9,10 +9,12 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
   const cairoCustomer = body.customer
   const cairoAccount = body.account
   const cairoPortfolio = body.portfolio
+  const cairoPortfolioSubscription = body.subscriptions
+  const rawBody = body.rawBody
   const constext = body.constext
 
   try{
-    const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, ['SKIP CUSTOMER CREATION'])
+    const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, cairoPortfolioSubscription, ['SKIP CUSTOMER CREATION'])
 
     const portfolioCreationFailed = response.portfolioCreation.status !== 'success' && response.portfolioCreation.status !== 'skipped'
     const accountCreationFailed = response.accountCreation.status !== 'success' && response.accountCreation.status !== 'skipped'
@@ -23,6 +25,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
 
     const resData:Partial<NewPortfolioResponse> = {
       status,
+      requestBody: rawBody,
       messages: status === 'success' ? 'Account created successfully' : 'Failed to create account',
       dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
       data: response

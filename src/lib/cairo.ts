@@ -1,5 +1,5 @@
 import { cairoAuthHeader } from "@/utils/cairoAuthUtils";
-import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustomer, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoPortfolioCreationPayload, CairoPortfolioCreationResponse, CairoResponseCollection, CairoHttpResponse, CairoAccount, CairoCustomerContact } from "./cairo.type";
+import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustomer, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoPortfolioCreationPayload, CairoPortfolioCreationResponse, CairoResponseCollection, CairoHttpResponse, CairoAccount, CairoCustomerContact, CairoSubscription, CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse } from "./cairo.type";
 
 
 
@@ -87,6 +87,35 @@ export async function createAccount(accountCreationPayload: CairoAccountCreation
       body: JSON.stringify(accountCreationPayload),
     }
   );
+}
+
+export async function fetchSubscriptionByPortfolioCode(portfolioCode: string){
+  const subscriptions = await makeRequest<CairoResponseCollection<CairoSubscription>>(`/subscriptions/?portfolioCode=${portfolioCode}`);
+  return subscriptions
+}
+
+export async function createSubscription(subscriptionCreationPayload: CairoSubscriptionCreationPayload){
+  const result =  await makeRequest<CairoSubscriptionCreationResponse>(`/subscriptions`,
+    {
+      method: "POST",
+      body: JSON.stringify(subscriptionCreationPayload),
+    }
+  );
+
+    // since cairo return the whole portfolio when create a portfolio and we only interested in the id fields. try to only parse the id
+    if(result.status == 'success' && result.data){
+      try{
+        const responseSimplified = {
+          subscriptionId: result.data.subscriptionId,
+        }
+        result.data = responseSimplified
+        result.body = JSON.stringify(responseSimplified)
+      } catch(e){
+        return result
+      }
+    }
+
+    return result
 }
 
 export async function createPortfolio(portfolioCreationPayload: CairoPortfolioCreationPayload) {

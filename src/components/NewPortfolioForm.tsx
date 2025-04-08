@@ -26,12 +26,16 @@ import NewPortfolioSubmittionResult from "./NewPortfolioSubmittionResult"
 import { modelPortfolioMap } from "@/constant/modelPortfolio"
 import { definedPortfolioType } from "@/constant/portfolioType"
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
+import { Percent } from "lucide-react"
 
 
 const userPortfolioSchema = z.object({
     isCompany: z.boolean(),
     firstname: z.string(),
     surname: z.string(),
+    feeSubscription: z.number({message:'Account fee is required'})
+        .min(0.2, { message: "Subscription fee must be at least 0.2" })
+        .max(2.0, { message: "Subscription fee must not exceed 2.0" }),
     personalNumber: z.string().refine((value) => {
         return /^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(value)
     }, { message: "Social security number must contain only digits and possibly one dash(-)." }),
@@ -376,6 +380,24 @@ export function NewPortfolioForm() {
                             <FormMessage />
                         </FormItem>
                     )} />
+                    <div className="flex">
+                        <FormField control={form.control} name="feeSubscription" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Account Fee*</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                        <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
+                                            const val = e.target.valueAsNumber;
+                                            field.onChange(Number.isNaN(val) ? undefined : val);
+                                        }}/>
+                                        <Percent className="absolute right-0 top-1/2 -translate-y-1/2 mr-2" size={16}/>
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+                        
 
                     <div className="flex flex-col items-end mt-20 mb-9">
                         <div>
