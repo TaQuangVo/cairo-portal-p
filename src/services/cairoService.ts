@@ -163,15 +163,6 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
         result.customerCreation.skippedOn = getCustomerResult.response!.data!.results[0]
     }
 
-    const portalRegistrationRes = await setupPortalPermission(accountCreationPayload.customerCode)
-    result.portalUserRegistration.status = portalRegistrationRes.status
-    result.portalUserRegistration.response = portalRegistrationRes
-    result.portalUserRegistration.statusCode = portalRegistrationRes.statusCode
-    if(portalRegistrationRes.statusCode === 409){
-        result.portalUserRegistration.status = 'skipped'
-        result.portalUserRegistration.skippedOn = portalRegistrationRes 
-    }
-
     //create customer if not skipped
     if(!skipCustomerCreation){
         const customerCreationResponse = await createCustomer(customerCreationPayload)
@@ -191,6 +182,15 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
             result.customerCreation.status = 'skipped'
             result.customerCreation.skippedOn = customerCreationResponse
         }
+    }
+
+    const portalRegistrationRes = await setupPortalPermission(accountCreationPayload.customerCode)
+    result.portalUserRegistration.status = portalRegistrationRes.status
+    result.portalUserRegistration.response = portalRegistrationRes
+    result.portalUserRegistration.statusCode = portalRegistrationRes.statusCode
+    if(portalRegistrationRes.statusCode === 409){
+        result.portalUserRegistration.status = 'skipped'
+        result.portalUserRegistration.skippedOn = portalRegistrationRes 
     }
 
     // Create account
