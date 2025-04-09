@@ -106,3 +106,43 @@ export function convertOrgNumber(input: string | null | undefined): string {
 
   return formatted;
 }
+
+
+type CapitalizeMode = 'first' | 'all' | 'sentence' | 'title' | 'word'
+export function capitalize(input: string, mode: CapitalizeMode = 'first'): string {
+  const lower = input.toLowerCase()
+
+  switch (mode) {
+    case 'first':
+      return lower.charAt(0).toUpperCase() + lower.slice(1)
+
+    case 'all':
+      return lower.toUpperCase()
+
+    case 'sentence':
+      return lower
+        .split(/([.!?]\s*)/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('')
+
+    case 'title':
+      return lower
+        .split(' ')
+        .map(word => {
+          if (['and', 'or', 'the', 'of', 'in', 'a', 'an'].includes(word)) {
+            return word
+          }
+          return word.charAt(0).toUpperCase() + word.slice(1)
+        })
+        .join(' ')
+      
+      case 'word':
+        return lower
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')
+
+    default:
+      return input
+  }
+}

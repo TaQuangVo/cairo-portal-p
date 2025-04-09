@@ -12,7 +12,11 @@ const client = new Client({ token: process.env.QSTASH_TOKEN! })
 
 // POST /api/submittions/portfolios
 export async function POST (req: NextRequest){
-    let userId = 'TaQuangVoMock';
+    const token = await getToken({ req })
+    if(!token){
+        return Response.json({messages:'Not authenticated.'}, {status: 403})
+    }
+    let userId = token.id;
 
     const body = await req.json()
 
@@ -29,8 +33,10 @@ export async function POST (req: NextRequest){
         const requestBodies = await payloadToRequestBodies(payload)
         const submissionResultId = new ObjectId().toHexString()
 
+        const qHandlerUrl = process.env.Q_HANDLER_URL
+
         const result = await client.publishJSON({
-          url: "https://icy-paths-stick.loca.lt/api/qhandler/portfolio",
+          url: qHandlerUrl + "/portfolio",
           body: {
             ...requestBodies,
             rawBody: body,

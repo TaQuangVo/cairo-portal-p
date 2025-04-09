@@ -38,7 +38,7 @@ export async function POST (req: NextRequest){
         const cairoAccount = requestBodies.account
         const cairoPortfolio = requestBodies.portfolio
 
-        const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, ['SKIP CUSTOMER CREATION'])
+        const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, [], ['SKIP CUSTOMER CREATION'])
 
         if(response.customerCreation.status !== 'success' && response.customerCreation.status !== 'skipped'){
             const resData:NewPortfolioResponse = {

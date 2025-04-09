@@ -16,17 +16,19 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { convertOrgNumber, convertPersonalNumber } from "@/utils/stringUtils"
+import { capitalize, convertOrgNumber, convertPersonalNumber } from "@/utils/stringUtils"
 import {
     Dialog,
     DialogContent,
 } from "@/components/ui/dialog"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import NewPortfolioSubmittionResult from "./NewPortfolioSubmittionResult"
 import { modelPortfolioMap } from "@/constant/modelPortfolio"
 import { definedPortfolioType } from "@/constant/portfolioType"
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
 import { Percent } from "lucide-react"
+import { RoaringCompanyOverviewRecords, RoaringPopulationRegisterRecord } from "@/lib/roaring.type"
+import { useSearchParams } from "next/navigation"
 
 
 const userPortfolioSchema = z.object({
@@ -132,6 +134,7 @@ export type UnexpectedErrorType = {
 }
 
 export function NewPortfolioForm() {
+    const searchParams = useSearchParams();
     const [showSubmittionModule, setShowSubmittionModule] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [submittionResult, setSubmittionResult] = useState<{portfolioCode:string, portfolioType: string, modelPortfolio:string|null} | null>(null)
@@ -202,6 +205,71 @@ export function NewPortfolioForm() {
         return
     }
 
+    async function prefillCompanyInfo(orgNumber: string){
+        orgNumber = "5401109565"
+        const response = await fetch("/api/roaring/companyOverview?orgNumber=" + orgNumber) 
+        if(response.ok){
+            let responseData: RoaringCompanyOverviewRecords[] = await response.json();
+            console.log(responseData)
+            const name = responseData?.[0]?.companyName
+            const adress = responseData?.[0]?.address
+            const zip = responseData?.[0]?.zipCode
+            const city = responseData?.[0]?.county
+
+            name && form.setValue('surname', capitalize(name, 'word'))
+            adress && form.setValue('address', capitalize(adress, 'word'))
+            zip && form.setValue('postalCode', zip)
+            city && form.setValue('city', capitalize(city, 'word'))
+        }else{
+            toast('Failed to fetch personal information.')
+        }
+    }
+    
+    useEffect(()=>{
+        const isCompany = searchParams.get('isCompany')
+        const orgNumber = searchParams.get('orgNumber')
+        console.log('isCompany: ' + isCompany)
+        console.log('orgNumber: ' + orgNumber)
+
+        if(isCompany == null || orgNumber == null || !['true', 'false'].includes(isCompany)){
+            return
+        }
+
+        try{
+            const formatedValue = isCompany==='true' ? convertOrgNumber(orgNumber) : convertPersonalNumber(orgNumber)
+            form.setValue('personalNumber', formatedValue)
+            isCompany!=='true' && prefillPersonalInfo(formatedValue)
+            isCompany==='true' && prefillCompanyInfo(formatedValue)
+
+        }catch(e){
+            toast('Cannot prefill values')
+        }
+
+    },[])
+
+    async function prefillPersonalInfo(personalNumber: string){
+        personalNumber = "198604069883"
+        const response = await fetch("/api/roaring/populationRegister?personalNumber=" + personalNumber) 
+        if(response.ok){
+            let responseData: RoaringPopulationRegisterRecord[] = await response.json();
+            const firstname = responseData?.[0]?.name?.[0]?.firstName
+            const surname = responseData?.[0]?.name?.[0]?.surName
+            const adress = responseData?.[0]?.populationRegistrationAddress?.[0].swedishAddress.deliveryAddress1
+            const adress2 = responseData?.[0]?.populationRegistrationAddress?.[0].swedishAddress.deliveryAddress2
+            const zip = responseData?.[0]?.populationRegistrationAddress?.[0].swedishAddress.zipCode
+            const city = responseData?.[0]?.populationRegistrationAddress?.[0].swedishAddress.city
+
+            firstname && form.setValue('firstname', capitalize(firstname, 'word')) 
+            surname && form.setValue('surname', capitalize(surname, 'word'))
+            adress && form.setValue('address2', capitalize(adress, 'word'))
+            adress2 && form.setValue('address', capitalize(adress2, 'word'))
+            zip && form.setValue('postalCode', zip)
+            city && form.setValue('city', capitalize(city, 'word'))
+        }else{
+            toast('Failed to fetch personal information.')
+        }
+    }
+
     const isCompany = form.watch("isCompany");
 
     return (
@@ -216,11 +284,8 @@ export function NewPortfolioForm() {
                             <FormItem >
                                 <FormControl>
                                     <Tabs value={field.value ? 'company' : 'private'} className=" lg:w-[400px] mx-auto " onValueChange={(value: string) => {
-                                        field.onChange(value === 'company')
-                                        const currentType = form.getValues().portfolioTypeCode
-                                        if (definedPortfolioType.get(currentType)?.id === 'ISK') {
-                                            form.setValue("portfolioTypeCode", '')
-                                        }
+                                        //field.onChange(value === 'company')
+                                        form.reset({ ...formDefaultValues, portfolioTypeCode: undefined, isCompany: value === 'company'})
                                     }}>
                                         <TabsList className="grid w-full grid-cols-2">
                                             <TabsTrigger value="private">Private Person</TabsTrigger>
@@ -236,6 +301,30 @@ export function NewPortfolioForm() {
                         <p className="font-semibold">Create a new account for a {isCompany ? 'company' : 'private person'}.</p>
                         <p>(If the customer does not already exist, one will be created automatically before the account is added)</p>
                     </div>
+
+                    <FormField control={form.control} name="personalNumber" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
+                            <FormControl>
+                                <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field} onBlur={(e => {
+                                    const value = e.target.value
+                                    try {
+                                        const formatedValue = isCompany ? convertOrgNumber(value) : convertPersonalNumber(value)
+                                        form.setValue('personalNumber', formatedValue)
+                                        !isCompany && prefillPersonalInfo(formatedValue)
+                                        isCompany && prefillCompanyInfo(formatedValue)
+                                    } catch (e) {
+                                        form.setError('personalNumber', {
+                                            type: 'custom',
+                                            message: (e as Error).message
+                                        })
+                                    }
+                                })} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <Separator />
 
                     {!isCompany && (
                         <FormField
@@ -261,31 +350,11 @@ export function NewPortfolioForm() {
                             <FormMessage />
                         </FormItem>
                     )} />
-                    <FormField control={form.control} name="personalNumber" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
-                            <FormControl>
-                                <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field} onBlur={(e => {
-                                    const value = e.target.value
-                                    try {
-                                        const formatedValue = isCompany ? convertOrgNumber(value) : convertPersonalNumber(value)
-                                        form.setValue('personalNumber', formatedValue)
-                                    } catch (e) {
-                                        form.setError('personalNumber', {
-                                            type: 'custom',
-                                            message: (e as Error).message
-                                        })
-                                    }
-                                })} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
                     <FormField control={form.control} name="address" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Address*</FormLabel>
                             <FormControl>
-                                <Input placeholder="Enter address" {...field} />
+                                <Input placeholder="Enter address" {...field}/>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -304,7 +373,7 @@ export function NewPortfolioForm() {
                             <FormItem className="ml-5">
                                 <FormLabel>City*</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter city" {...field} />
+                                    <Input placeholder="Enter city" {...field}/>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

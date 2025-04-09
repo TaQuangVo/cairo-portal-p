@@ -1,4 +1,4 @@
-import { swedishPopulationRegisterSearch } from "@/lib/roaring";
+import { getPopulationRegister } from "@/services/roaring";
 import { convertPersonalNumber } from "@/utils/stringUtils";
 import { NextRequest } from "next/server";
 
@@ -11,7 +11,7 @@ export async function GET (req: NextRequest){
 
     try{
         personalNumber = convertPersonalNumber(personalNumber)
-        const person = await swedishPopulationRegisterSearch(personalNumber.replaceAll('-', ''))
+        const person = await getPopulationRegister(personalNumber)
 
         if(!person){
             return Response.json({messages:'Person not found'}, {status: 404})

@@ -42,5 +42,5 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     updateResponseToSubmission(resData, constext.submissionResultId as string)
 
     return Response.json(resData, {status: 500})
-    }
+  }
 })

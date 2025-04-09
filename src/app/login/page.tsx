@@ -1,5 +1,5 @@
 "use client"
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from "next-auth/react";
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -30,6 +30,7 @@ export default function InputWithButton() {
   const [currentTransaction, setCurrentTransaction] = useState<CurrentTransaction|null>(null)
   const [ssn, setSsn] = useState<string>('')
   const [disableButon, setDisableButton] = useState<boolean>(false)
+  const searchParams = useSearchParams();
 
     // Mark async function properly and define return type as Promise<void>
     const onBankIdComplete = async (
@@ -57,7 +58,8 @@ export default function InputWithButton() {
               setError('Sign-in failed')
           }
           if (signInResult?.ok) {
-            router.push('/dashboard')
+            const redirectTo = decodeURIComponent(searchParams.get('redirect') || '/dashboard');
+            router.push(redirectTo)
           }
       }
 

@@ -1,9 +1,11 @@
 import { MongoClient, ServerApiVersion, Db, Collection, ObjectId } from "mongodb";
-import { DBCounter, DBPortfolioSubmittions, DBUser } from "./db.type";
+import { DBCounter, DBPortfolioSubmittions, DBRoaringCompanyOverview, DBRoaringPopulationRegister, DBUser } from "./db.type";
 
 const DB_NAME = "PeakAm";
 const USER_COLLECTION_NAME = "users";
 const SUBMITTION_COLLECTION_NAME = "submittions";
+const POPULATION_REGISTER_COLLECTION_NAME = "populationRegister";
+const COMPANY_OVERVIEW_COLLECTION_NAME = "companyOverview"
 const COUNTER_COLLECTION_NAME = "Counter";
 
 // Global variable to store the database client
@@ -49,6 +51,16 @@ export async function getUserCollection(): Promise<Collection<DBUser>> {
 export async function getSubmittionCollection(): Promise<Collection<DBPortfolioSubmittions>> {
   const db = await getDB(DB_NAME);
   return db.collection<DBPortfolioSubmittions>(SUBMITTION_COLLECTION_NAME);
+}
+
+export async function getPopulationRegisterCollection(): Promise<Collection<DBRoaringPopulationRegister>> {
+  const db = await getDB(DB_NAME);
+  return db.collection<DBRoaringPopulationRegister>(POPULATION_REGISTER_COLLECTION_NAME);
+}
+
+export async function getCompanyOverviewCollection(): Promise<Collection<DBRoaringCompanyOverview>> {
+  const db = await getDB(DB_NAME);
+  return db.collection<DBRoaringCompanyOverview>(COMPANY_OVERVIEW_COLLECTION_NAME);
 }
 
 export async function getCurrentPortfolioCount(): Promise<number>{

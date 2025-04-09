@@ -2,6 +2,7 @@ import { CustomerAccountPortfolioCreationPayload } from "@/app/api/submittions/p
 import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
 import { CairoCustomer } from "./cairo.type";
 import { ZodError } from "zod";
+import { RoaringCompanyOverviewRecords, RoaringPopulationRegisterRecord } from "./roaring.type";
 
 export type DBUser = {
     _id: string
@@ -60,4 +61,19 @@ export interface DBCounter {
     _id: string;
     counter: number;
     type: 'portfolio';
+}
+
+export interface DBRoaringPopulationRegister {
+    _id: string;
+    personalNumber: string;
+    records: RoaringPopulationRegisterRecord[];
+    createdAt: Date;
+}
+
+
+export interface DBRoaringCompanyOverview {
+    _id: string;
+    orgNumber: string;
+    records: RoaringCompanyOverviewRecords[];
+    createdAt: Date;
 }
