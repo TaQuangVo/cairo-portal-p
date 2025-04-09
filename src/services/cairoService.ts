@@ -1,5 +1,5 @@
-import { createAccount, createCustomer, createPortfolio, createSubscription, fetchCustomerByPersonalNumber, fetchSubscriptionByPortfolioCode } from "@/lib/cairo"
-import { CairoAccountCreationPayload, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoAccountCreationResponse, CairoPortfolioCreationPayload, CairoHttpResponse, CairoPortfolioCreationResponse, CairoCustomer, CairoResponseCollection, CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse } from "@/lib/cairo.type"
+import { createAccount, createCustomer, createPortfolio, createSubscription, fetchCustomerByPersonalNumber, fetchSubscriptionByPortfolioCode, setupPortalPermission } from "@/lib/cairo"
+import { CairoAccountCreationPayload, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoAccountCreationResponse, CairoPortfolioCreationPayload, CairoHttpResponse, CairoPortfolioCreationResponse, CairoCustomer, CairoResponseCollection, CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse, CairoPortalUser } from "@/lib/cairo.type"
 
 export type CairoExercutionResult<P ,T> = {
     status: 'not exercuted' | 'success' | 'error' | 'failed' | 'skipped',
@@ -11,6 +11,7 @@ export type CairoExercutionResult<P ,T> = {
 
 export type SequentialCustomerAccountPortfolioCreatioResult = {
     customerCreation: CairoExercutionResult<CairoCustomerCreationPayload, CairoCustomerCreationResponse>,
+    portalUserRegistration: CairoExercutionResult<string, CairoPortalUser>,
     accountCreation: CairoExercutionResult<CairoAccountCreationPayload, CairoAccountCreationResponse>,
     portfolioCreation: CairoExercutionResult<CairoPortfolioCreationPayload, CairoPortfolioCreationResponse>,
     subscriptionCreation: CairoExercutionResult<CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse>[],
@@ -111,6 +112,12 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
             response: undefined,
             payload: customerCreationPayload
         },
+        portalUserRegistration: {
+            status: 'not exercuted',
+            statusCode: undefined,
+            response: undefined,
+            payload: customerCreationPayload.organizationId
+        },
         accountCreation: {
             status: 'not exercuted',
             statusCode: undefined,
@@ -148,9 +155,21 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
             return result
         }
         accountCreationPayload.customerCode = existingCustomerCode
+        result.accountCreation.payload.customerCode = existingCustomerCode
         portfolioCreationPayload.customerCode = existingCustomerCode
+        result.portfolioCreation.payload.customerCode = existingCustomerCode
+        result.portalUserRegistration.payload = existingCustomerCode
         result.customerCreation.status = 'skipped'
         result.customerCreation.skippedOn = getCustomerResult.response!.data!.results[0]
+    }
+
+    const portalRegistrationRes = await setupPortalPermission(accountCreationPayload.customerCode)
+    result.portalUserRegistration.status = portalRegistrationRes.status
+    result.portalUserRegistration.response = portalRegistrationRes
+    result.portalUserRegistration.statusCode = portalRegistrationRes.statusCode
+    if(portalRegistrationRes.statusCode === 409){
+        result.portalUserRegistration.status = 'skipped'
+        result.portalUserRegistration.skippedOn = portalRegistrationRes 
     }
 
     //create customer if not skipped
@@ -177,6 +196,7 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     // Create account
     const accountCreationResponse = await createAccount(accountCreationPayload)
     result.accountCreation.status = accountCreationResponse.status
+    result.accountCreation.payload = accountCreationPayload
     result.accountCreation.statusCode = accountCreationResponse.statusCode
     result.accountCreation.response = accountCreationResponse
 
@@ -196,6 +216,7 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     // Create portfolio
     const portfolioCreationResponse = await createPortfolio(portfolioCreationPayload)
     result.portfolioCreation.status = portfolioCreationResponse.status
+    result.portfolioCreation.payload = portfolioCreationPayload
     result.portfolioCreation.statusCode = portfolioCreationResponse.statusCode
     result.portfolioCreation.response = portfolioCreationResponse
 

@@ -80,6 +80,23 @@ export type CairoAccount = {
     isActive: boolean
 };
 
+export interface CairoPortalUser {
+    customerCode: string
+    firstName: string
+    surName: string
+    customerDescription: string
+    nin: string
+    customerTypeCode: string
+    customerTypeDescription: string
+    customerStartDate: string
+    customerEndDate: any
+    isActive: boolean
+    accessCode: string
+    accessDescription: string
+    updateDate: string
+}
+  
+
 export type CairoAccountCreationPayload = Required<Pick<CairoAccount,
     'accountCode' |
     'accountDescription' |

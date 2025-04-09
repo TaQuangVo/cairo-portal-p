@@ -1,5 +1,5 @@
 import { cairoAuthHeader } from "@/utils/cairoAuthUtils";
-import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustomer, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoPortfolioCreationPayload, CairoPortfolioCreationResponse, CairoResponseCollection, CairoHttpResponse, CairoAccount, CairoCustomerContact, CairoSubscription, CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse } from "./cairo.type";
+import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustomer, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoPortfolioCreationPayload, CairoPortfolioCreationResponse, CairoResponseCollection, CairoHttpResponse, CairoAccount, CairoCustomerContact, CairoSubscription, CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse, CairoPortalUser } from "./cairo.type";
 
 
 
@@ -76,6 +76,15 @@ export async function createCustomer(customerCreationPayload: CairoCustomerCreat
     {
       method: "POST",
       body: JSON.stringify(customerCreationPayload),
+    }
+  );
+}
+
+export async function setupPortalPermission(customerCode: string) {
+  return makeRequest<CairoPortalUser>(`/portalusers`,
+    {
+      method: "POST",
+      body: JSON.stringify({customerCode: customerCode}),
     }
   );
 }
