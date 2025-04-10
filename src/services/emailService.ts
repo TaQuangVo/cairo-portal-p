@@ -1,4 +1,4 @@
-import { NewPortfolioResponse } from '@/app/api/submittions/portfolios/helper';
+import { NewPortfolioResponse } from '@/app/api/submittions/v2/portfolios/helper';
 import { DBUser } from '@/lib/db.type';
 import { transport } from '@/lib/mailer';
 import Mail from 'nodemailer/lib/mailer';

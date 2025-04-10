@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getSubmittionCollection } from "../lib/db";
 import { DBBasePortfolioSubmittions, DBPortfolioSubmittions } from "../lib/db.type";
-import { NewPortfolioResponse } from "@/app/api/submittions/portfolios/helper";
+import { NewPortfolioResponse } from "@/app/api/submittions/v2/portfolios/helper";
 
 
 export async function saveResponseToSubmittion(newPortfolioResponse: NewPortfolioResponse, createdBy:string, id: string| null): Promise<string | null> {

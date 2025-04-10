@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { NewPortfolioResponse } from "../submittions/portfolios/helper";
 import { getToken } from "next-auth/jwt"
 import { sendSubmittionFailureReportMail } from "@/services/emailService";
 import { getUserById } from "@/services/userService";
+import { NewPortfolioResponse } from "../submittions/v2/portfolios/helper";
 
 
 export async function POST (req: NextRequest){
