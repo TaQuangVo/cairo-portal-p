@@ -309,10 +309,6 @@ export default function Page() {
                             </div>
                         </form>
                     </Form>
-                    <Button onClick={()=>signIn("credentials", {
-              redirect: false,
-              transactionId: ''
-          })} variant='outline' className="mt-4">test</Button>
                 </div>
             </div>
     </>

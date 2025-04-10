@@ -52,10 +52,10 @@ export async function POST (req: NextRequest){
             status: 'pending',
             requestType: 'Create Portfolio',
             requestBody: body,
-            messages:'Failed to create portfolio',
+            messages:'Portfolio creation in progress, JobId: ' + result.messageId,
             dataType: null,
             data: null
-          }
+        }
 
         saveResponseToSubmittion(resData, userId, submissionResultId)
 

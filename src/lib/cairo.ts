@@ -66,9 +66,25 @@ export async function fetchCustomerContactsByCustomerCode(customerCode: string) 
   return makeRequest<CairoResponseCollection<CairoCustomerContact>>(`/customerContacts/?customerCode=${customerCode}`);
 }
  
-export async function fetchCustomerByPersonalNumber(personalNumber: string) {
-    const customer = await makeRequest<CairoResponseCollection<CairoCustomer>>(`/customers/?organizationId=${personalNumber}&_fields=+accounts,+portfolios,+customerContacts&_no_cache=true`);
-    return customer
+export async function fetchCustomerByPersonalNumber(personalNumber: string, withAccount:boolean = false, withPortfolio:boolean = false, withContacts:boolean = false) {
+  //`/customers/?organizationId=${personalNumber}&_no_cache=true&_fields=+accounts,+portfolios,+customerContacts`
+  let url = `/customers/?organizationId=${personalNumber}&_no_cache=true`
+  if(withAccount || withPortfolio || withContacts){
+    url += '&_fields='
+    if(withAccount){
+      url += '+accounts,'
+    }
+    if(withPortfolio){
+      url += '+portfolios,'
+    }
+    if(withContacts){
+      url += '+customerContacts,'
+    }
+    url = url.slice(0, -1) // remove last comma
+  }
+
+  const customer = await makeRequest<CairoResponseCollection<CairoCustomer>>(url);
+  return customer
 }
 
 export async function createCustomer(customerCreationPayload: CairoCustomerCreationPayload) {

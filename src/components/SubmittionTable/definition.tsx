@@ -18,6 +18,11 @@ export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
       ,
     },
     {
+      header: "Status",
+      accessorKey: "status", // No change needed for top-level field
+      id: "status",
+    },
+    {
       header: "Type",
       accessorFn: (row) => row.requestBody.isCompany ? 'Company' : 'Private' , // Accessing the nested surname and firstname
       id: "type" 
@@ -59,12 +64,7 @@ export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
       id: "modelPortfolioCode",
     },
     {
-      header: "Status",
-      accessorKey: "status", // No change needed for top-level field
-      id: "status",
-    },
-    {
-      header: "Created AccountID",
+      header: "AccountID",
       accessorFn: (row) => {
         if(row.status == 'success'){
           const response: SequentialCustomerAccountPortfolioCreatioResult = row.data as SequentialCustomerAccountPortfolioCreatioResult

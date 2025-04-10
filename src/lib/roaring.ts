@@ -47,9 +47,13 @@ export async function swedishPopulationRegisterSearch(personalNumber: string): P
         }
     });
 
-    if (!res.ok) {
-        console.log('Population register request failed')
-        throw new Error('Failed to fetch population register search');
+    if (!res.ok && res.status !== 404) {
+        const errorResponse = await res.json();
+        throw new Error(errorResponse.message);
+    }
+    
+    if(res.status === 404){
+        return null
     }
 
     const data = await res.json() as RoaringPopulationRegisterResponse;
@@ -80,13 +84,17 @@ export async function swedishCompanyOverviewSearch(orgNumber: string): Promise<R
         }
     });
 
-    if (!res.ok) {
-        console.log('Company Overview request failed')
-        throw new Error('Failed to fetch Company Overview search');
+    if (!res.ok && res.status !== 404) {
+        const errorResponse = await res.json();
+        throw new Error(errorResponse.message);
     }
 
     const data = await res.json() as RoaringCompanyOverviewResponse;
     if(data.status.code === 1){
+        return null
+    }
+
+    if(res.status === 404){
         return null
     }
 
