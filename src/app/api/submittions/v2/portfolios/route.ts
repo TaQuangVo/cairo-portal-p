@@ -1,11 +1,10 @@
 import { Client } from "@upstash/qstash"
 
 import { NextRequest } from "next/server"
-import { CustomerAccountPortfolioCreationPayload, customerAccountPortfolioCreationPayloadSchema, payloadToRequestBodies} from "./helper"
+import { CustomerAccountPortfolioCreationPayload, customerAccountPortfolioCreationPayloadSchema, NewPortfolioResponse, payloadToRequestBodies} from "./helper"
 import { ZodError } from "zod"
 import { getToken } from "next-auth/jwt"
 import { saveResponseToSubmittion } from "@/services/submittionService"
-import { NewPortfolioResponse } from "../../portfolios/helper"
 import { ObjectId } from "mongodb"
 
 const client = new Client({ token: process.env.QSTASH_TOKEN! })
@@ -51,6 +50,7 @@ export async function POST (req: NextRequest){
         const resData:NewPortfolioResponse = {
             status: 'pending',
             requestType: 'Create Portfolio',
+            messageBody: requestBodies,
             requestBody: body,
             messages:'Portfolio creation in progress, JobId: ' + result.messageId,
             dataType: null,

@@ -313,7 +313,9 @@ export function NewPortfolioForm() {
                         <FormItem>
                             <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
                             <FormControl>
-                                <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field} onBlur={(e => {
+                                <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field}
+                                 disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'}
+                                 onBlur={(e => {
                                     const value = e.target.value
                                     try {
                                         const formatedValue = isCompany ? convertOrgNumber(value) : convertPersonalNumber(value)
@@ -353,7 +355,7 @@ export function NewPortfolioForm() {
                             <FormItem className="flex-1/2">
                                 <FormLabel>{isCompany ? "Company Name*" : "Surname*"}</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter surname" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer'}/>
+                                    <Input placeholder="Enter surname" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'}/>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -364,7 +366,7 @@ export function NewPortfolioForm() {
                             <FormItem className="flex-1/2">
                                 <FormLabel>Address*</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter address" {...field} disabled={fetchingAutoFillValues === 'private customer'}/>
+                                    <Input placeholder="Enter address" {...field} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'}/>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -374,7 +376,7 @@ export function NewPortfolioForm() {
                                 <FormItem>
                                     <FormLabel>Postal Code*</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter postal code" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer'}/>
+                                        <Input placeholder="Enter postal code" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'}/>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -383,7 +385,7 @@ export function NewPortfolioForm() {
                                 <FormItem>
                                     <FormLabel>City*</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter city" {...field} disabled={fetchingAutoFillValues === 'private customer'}/>
+                                        <Input placeholder="Enter city" {...field} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'}/>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -434,7 +436,9 @@ export function NewPortfolioForm() {
                                     <FormItem>
                                         <FormLabel>Social security number*</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Social security number" {...field} value={field.value ?? ''}  onBlur={(e => {
+                                            <Input placeholder="Social security number" {...field} value={field.value ?? ''}  
+                                            disabled={fetchingAutoFillValues === 'reprecentive'} 
+                                            onBlur={(e => {
                                                 const value = e.target.value
                                                 try {
                                                     const formatedValue =convertPersonalNumber(value)
@@ -456,7 +460,7 @@ export function NewPortfolioForm() {
                                         <FormItem className="flex-1/2">
                                             <FormLabel>Firstname*</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Firstname" {...field} value={field.value ?? ''} />
+                                                <Input placeholder="Firstname" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'}/>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -465,7 +469,7 @@ export function NewPortfolioForm() {
                                         <FormItem className="flex-1/2">
                                             <FormLabel>Surname*</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Surename" {...field} value={field.value ?? ''} />
+                                                <Input placeholder="Surename" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'}/>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -476,7 +480,7 @@ export function NewPortfolioForm() {
                                         <FormItem className="flex-1/2">
                                             <FormLabel>Adress*</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Adress" {...field} value={field.value ?? ''} />
+                                                <Input placeholder="Adress" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'}/>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -486,7 +490,7 @@ export function NewPortfolioForm() {
                                             <FormItem>
                                                 <FormLabel>Portal code*</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Portal code" {...field} value={field.value ?? ''} />
+                                                    <Input placeholder="Portal code" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'}/>
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -495,7 +499,7 @@ export function NewPortfolioForm() {
                                             <FormItem className="ml-5">
                                                 <FormLabel>City*</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="City" {...field} value={field.value ?? ''} />
+                                                    <Input placeholder="City" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'}/>
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>

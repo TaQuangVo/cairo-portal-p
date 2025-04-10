@@ -1,7 +1,7 @@
 import { createCustomerAccountPortfolio } from "@/services/cairoService"
 import { verifySignatureAppRouter } from "@upstash/qstash/nextjs"
 import { updateResponseToSubmission } from "@/services/submittionService"
-import { NewPortfolioResponse } from "../../submittions/portfolios/helper"
+import { NewPortfolioResponse } from "../../submittions/v2/portfolios/helper"
 
 // 👇 Verify that this messages comes from QStash
 export const POST = verifySignatureAppRouter(async (req: Request) => {

@@ -1,6 +1,6 @@
 import { CustomerAccountPortfolioCreationPayload } from "@/app/api/submittions/portfolios/helper";
 import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
-import { CairoCustomer } from "./cairo.type";
+import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload, CairoSubscriptionCreationPayload } from "./cairo.type";
 import { ZodError } from "zod";
 import { RoaringCompanyOverviewRecords, RoaringPopulationRegisterRecord } from "./roaring.type";
 
@@ -28,6 +28,12 @@ export interface DBBasePortfolioSubmittions {
     status: 'pending' | 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
     requestType: 'Create Portfolio';
     requestBody: CustomerAccountPortfolioCreationPayload;
+    messageBody: {
+        customer: CairoCustomerCreationPayload
+        account: CairoAccountCreationPayload,
+        portfolio: CairoPortfolioCreationPayload,
+        subscriptions: CairoSubscriptionCreationPayload[]
+    }
     messages: string;
     createdBy: string;
     createdAt: Date;

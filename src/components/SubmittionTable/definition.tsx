@@ -68,7 +68,9 @@ export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
       accessorFn: (row) => {
         if(row.status == 'success'){
           const response: SequentialCustomerAccountPortfolioCreatioResult = row.data as SequentialCustomerAccountPortfolioCreatioResult
-          return response.portfolioCreation.payload.portfolioDescription
+          return response.portfolioCreation.payload.portfolioDescription ?? ''
+        }else if(row.status == 'pending'){
+          return row.messageBody?.portfolio?.portfolioDescription ?? ''
         }else{
           return ''
         }
