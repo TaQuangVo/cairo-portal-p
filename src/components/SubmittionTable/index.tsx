@@ -9,7 +9,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, RotateCcw, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -92,8 +92,36 @@ import { useDebounce } from "@/hooks/useDebounce";
       setJsonDataView(null);
     }
 
+    const reloadTableData = async (query:string, page:number, limit:number) => {
+      setLoading(true)
+      const res = await fetch(`/api/submittions?searchPersonalNumber=${encodeURIComponent(query)}&page=${page}&limit=${limit}`);
+      setLoading(false)
+      const data = await res.json();
+      setSubmittions(data.data.submissions);
+      setTotalCount(data.data.total);
+      if(debouncedQuery === '' && pageIndex === 0){
+        defaultSubmittions.submissions = data.data.submissions;
+      }
+    }
+
+    const fetchSubmittions = async (query:string, page:number, limit:number) => {
+      if(debouncedQuery !== '' || pageIndex !== 0){
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/submittions?searchPersonalNumber=${encodeURIComponent(query)}&page=${page}&limit=${limit}`);
+            const data = await res.json();
+            setSubmittions(data.data.submissions);
+        } catch (err) {
+            console.error("Failed to fetch users", err);
+        } finally {
+            setLoading(false);
+        }
+      }else {
+        setSubmittions(defaultSubmittions.submissions)
+      }
+    };
+
     React.useEffect(() => {
-  
       let isNewSearch = false;
       // Detect if query has changed and reset page index
       if (pageIndex !== 0 && debouncedQuery !== "") {
@@ -101,25 +129,8 @@ import { useDebounce } from "@/hooks/useDebounce";
         isNewSearch = true;
         return; // Wait for state update, don't fetch yet
       }
-  
-      const fetchUsers = async () => {
-          if(debouncedQuery !== '' || pageIndex !== 0){
-            setLoading(true);
-            try {
-                const res = await fetch(`/api/submittions?searchPersonalNumber=${encodeURIComponent(debouncedQuery)}&page=${pageIndex}&limit=${pageSize}`);
-                const data = await res.json();
-                setSubmittions(data.data.submissions);
-            } catch (err) {
-                console.error("Failed to fetch users", err);
-            } finally {
-                setLoading(false);
-            }
-          }else {
-            setSubmittions(defaultSubmittions.submissions)
-          }
-        };
-  
-      fetchUsers();
+
+      fetchSubmittions(debouncedQuery, pageIndex, pageSize);
     }, [debouncedQuery, pageIndex, pageSize]);
   
     return (
@@ -133,11 +144,15 @@ import { useDebounce } from "@/hooks/useDebounce";
             //onChange={(event) => table.getColumn("personalNumber")?.setFilterValue(event.target.value)}
             className="max-w-sm"
           />
+          
+          <Button variant="outline" className="ml-auto" onClick={() => reloadTableData(debouncedQuery, pageIndex, pageSize)}>
+              <RotateCw className={loading ? "animate-spin" : ""}/>
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown />
-              </Button>
+                <Button variant="outline" className="ml-3">
+                  Columns <ChevronDown />
+                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {table.getAllColumns().map((column) => (

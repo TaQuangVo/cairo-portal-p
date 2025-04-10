@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { capitalize, convertOrgNumber, convertPersonalNumber } from "@/utils/stringUtils"
+import { capitalize, convertOrgNumber, convertPersonalNumber, formatDecimals } from "@/utils/stringUtils"
 import {
     Dialog,
     DialogContent,
@@ -31,7 +31,6 @@ import { useSearchParams } from "next/navigation"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion"
 import { formDefaultValues, UserPortfolioFormValues, userPortfolioSchema } from "./helper"
 import { Checkbox } from "../ui/checkbox"
-import { Skeleton } from "../ui/skeleton"
 
 
 
@@ -590,7 +589,7 @@ export function NewPortfolioForm() {
                                         <div className="relative">
                                             <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
                                                 const val = e.target.valueAsNumber;
-                                                field.onChange(Number.isNaN(val) ? undefined : val);
+                                                field.onChange(Number.isNaN(val) ? undefined : formatDecimals(val, 2));
                                             }} />
                                             <Percent className="absolute right-0 top-1/2 -translate-y-1/2 mr-2" size={16} />
                                         </div>
@@ -606,7 +605,6 @@ export function NewPortfolioForm() {
                         <div>
                             <Button type="button" variant='outline' className="mr-4" disabled={!form.formState.isDirty} onClick={() => resetForm()}>Clear formular</Button>
                             <Button type="submit" disabled={!form.formState.isValid || Object.keys(form.formState.errors).length > 0}>Create</Button>
-                            <Button type="button" variant='link' className="ml-4" onClick={() => {console.log(Object.keys(form.formState.errors).length === 0)}}>test</Button>
                         </div>
                         {
                             !form.formState.isValid &&

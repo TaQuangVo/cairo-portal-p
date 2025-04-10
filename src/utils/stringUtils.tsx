@@ -146,3 +146,11 @@ export function capitalize(input: string, mode: CapitalizeMode = 'first'): strin
       return input
   }
 }
+
+export function formatDecimals(num:number, length:number):number {
+  const decimalPart = num.toString().split(".")[1];
+  if (decimalPart && decimalPart.length > length) {
+    return parseFloat(num.toFixed(2));
+  }
+  return num;
+}
