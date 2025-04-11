@@ -142,7 +142,7 @@ import { useDebounce } from "@/hooks/useDebounce";
             onChange={(e) => setSearchQuery(e.target.value)}
             //value={(table.getColumn("personalNumber")?.getFilterValue() as string) ?? ""}
             //onChange={(event) => table.getColumn("personalNumber")?.setFilterValue(event.target.value)}
-            className="max-w-sm"
+            className="max-w-sm mr-3"
           />
           
           <Button variant="outline" className="ml-auto" onClick={() => reloadTableData(debouncedQuery, pageIndex, pageSize)}>

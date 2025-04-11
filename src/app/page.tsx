@@ -33,7 +33,7 @@ export default function Home() {
         </div>
         <div className="absolute bottom-0 right-0 my-6 text-xs text-right">
           <p>Developed by: Säkra VP AB 2025</p>
-          <p>Version: v0.2.0 BETA</p>
+          <p>Version: v0.2.1 BETA</p>
         </div>
       </main>
     </div>
