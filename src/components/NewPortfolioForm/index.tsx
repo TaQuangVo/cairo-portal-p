@@ -392,7 +392,7 @@ export function NewPortfolioForm() {
                             )} />
                         </div>
                     </div>
-                    <div className="flex gap-6">
+                    <div className="flex gap-6 flex-col lg:flex-row">
                         <FormField control={form.control} name="mobile" render={({ field }) => (
                             <FormItem className="flex-1/2">
                                 <FormLabel>Mobile (Optional)</FormLabel>
@@ -506,7 +506,7 @@ export function NewPortfolioForm() {
                                         )} />
                                     </div>
                                 </div>
-                                <div className="flex gap-6">
+                                <div className="flex gap-6 flex-col lg:flex-row">
                                     <FormField control={form.control} name="reprecenterMobile" render={({ field }) => (
                                         <FormItem className="flex-1/2">
                                             <FormLabel>Mobile (Optional)</FormLabel>

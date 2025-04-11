@@ -2,14 +2,10 @@
 
 import * as React from "react"
 import {
-  HelpCircleIcon,
   ListIcon,
   UsersIcon,
-  Bug,
   PlusCircleIcon,
-  Boxes,
   Ellipsis, 
-  FilePenLine,
   House
 } from "lucide-react"
 
@@ -24,16 +20,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { useSession } from "next-auth/react"
 import { Session } from "next-auth"
 import Image from "next/image"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter()
   const { data: session } = useSession()
+  const { toggleSidebar } = useSidebar() 
+  const isMobile = useIsMobile()
+
 
   const [ sessionData, setSessionData ] = React.useState<Session | null>(null)
   React.useEffect(() => {
@@ -51,7 +52,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       mainButtonOptions: [{
           title: 'Create Account.',
           icon: PlusCircleIcon,
-          onClick: () => {router.push('/dashboard/portfolios')},
+          onClick: () => {
+            router.push('/dashboard/portfolios')
+          },
           value: 'Quick Create'
       }
       //,{
@@ -107,7 +110,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link href="/dashboard">
+              <Link href="/dashboard" onClick={() => {
+                if(isMobile){
+                  toggleSidebar()
+                }
+              }}>
               <Image src="/skra_logo.png" alt="Hero" width={20} height={20} />
                 <span className="text-base font-semibold">Säkra secure.</span>
               </Link>

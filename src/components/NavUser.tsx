@@ -31,6 +31,7 @@ import Link from "next/link"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
+  const { toggleSidebar } = useSidebar() 
 
   const [ data, setData ] = useState<Session | null>(null)
   const session = useSession()
@@ -81,7 +82,11 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href={`/dashboard/users/${data?.user.id}`}>
+              <Link href={`/dashboard/users/${data?.user.id}`} onClick={()=>{
+                if(isMobile){
+                  toggleSidebar()
+                }
+              }}>
                 <DropdownMenuItem>
                   <UserCircleIcon />
                   Account

@@ -9,9 +9,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
 import Link from "next/link"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function NavSection({
   items,
@@ -37,6 +39,8 @@ export function NavSection({
     }
   }
 ) {
+  const { toggleSidebar } = useSidebar() 
+  const isMobile = useIsMobile()
   const [selectedMainButton, setSelectedMainButton] = useState(
     actionButton?.mainButtonOptions[0] || null
   )
@@ -52,7 +56,12 @@ export function NavSection({
               <SidebarMenuButton
                 tooltip={selectedMainButton.title}
                 className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
-                onClick={selectedMainButton.onClick}
+                onClick={()=>{
+                  selectedMainButton.onClick()
+                  if(isMobile){
+                    toggleSidebar()
+                  }
+                }}
               >
                 {selectedMainButton.icon && <selectedMainButton.icon />}
                 <span>{selectedMainButton.title}</span>
@@ -67,6 +76,9 @@ export function NavSection({
                     if (newMainButton){
                       setSelectedMainButton(newMainButton)
                       newMainButton.onClick()
+                      if(isMobile){
+                        toggleSidebar()
+                      }
                     } 
                   }}
                 >
@@ -88,7 +100,11 @@ export function NavSection({
 
         <SidebarMenu>
           {items.map((item) => (
-            <Link href={item.url} key={item.title}>
+            <Link href={item.url} key={item.title} onClick={() => {
+              if(isMobile){
+                toggleSidebar()
+              }
+            }}>
               <SidebarMenuItem>
                 <SidebarMenuButton tooltip={item.title}>
                   {item.icon && <item.icon />}
