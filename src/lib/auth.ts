@@ -72,7 +72,6 @@ export const authOptions = {
 
             //Check if user is registered in our system
             const user = await getUserByPersonalNumber(userSSN)
-            console.log(user)
 
             if(user && !user.isActive){
               return null;

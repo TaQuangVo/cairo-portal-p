@@ -63,7 +63,7 @@ export function UserDataTable({users: defaultUsers}:{users: {users:DBUser[],tota
   const [users, setUsers] = React.useState<DBUser[]>(defaultUsers.users);
   const [loading, setLoading] = React.useState(false);
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(3);
+  const [pageSize, setPageSize] = React.useState(10);
   const [totalCount, setTotalCount] = React.useState(defaultUsers.total);
 
 

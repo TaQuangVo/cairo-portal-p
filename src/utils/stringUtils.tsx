@@ -1,5 +1,4 @@
 export function convertPersonalNumber(input: string | null | undefined): string {
-  console.log('verifing: ' + input)
     if (!input) {
       throw new Error("Personal number is missing.");
     }

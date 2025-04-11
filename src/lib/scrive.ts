@@ -41,7 +41,7 @@ export async function newTransaction() {
     const data = {
         "method": "auth",
         "provider": "seBankID",
-        "redirectUrl": "https://google.com",
+        "redirectUrl": "https://tired-taxis-allow.loca.lt/login",
         "providerParameters": {
             "auth": {
                 "seBankID": {

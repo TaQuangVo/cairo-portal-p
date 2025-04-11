@@ -13,10 +13,11 @@ import {
   } from "@/components/ui/card"
 import BankIdLoginWithQrCodeComponent from "@/components/BankIdLoginWithQrCodeComponent";
 import { useState } from "react";
-import { Boxes, X } from 'lucide-react';
 import Link from 'next/link';
 import { convertPersonalNumber } from '@/utils/stringUtils';
 import Image from 'next/image';
+import { useIsMobileWebClient } from '@/hooks/userMobileWebClient';
+import BankIdLoginWithNativeAppComponent from '@/components/BankIdLoginWithNativeAppComponent';
 
 type CurrentTransaction = {
   id:string,
@@ -31,6 +32,9 @@ export default function InputWithButton() {
   const [ssn, setSsn] = useState<string>('')
   const [disableButon, setDisableButton] = useState<boolean>(false)
   const searchParams = useSearchParams();
+  const isMobileClient = useIsMobileWebClient()
+
+  const completedTransactionId = searchParams.get('completedTransactionId')
 
     // Mark async function properly and define return type as Promise<void>
     const onBankIdComplete = async (
@@ -39,30 +43,43 @@ export default function InputWithButton() {
     ): Promise<void> => {
 
       // Handle different result cases
+      if (result === 'FAILED' && data) {
+        setCurrentTransaction({
+          id: data.id,
+          status: data.status,
+          data: data
+        })
+        setError('Failed to login user.')
+      }
+      // Handle different result cases
       if (result === 'CANCEL') {
           setCurrentTransaction(null)
       }
       if (result === 'RETRY') {
           handleGetLoginSession()
       }
-      if (result === 'SUCCESS') {
-          if (!currentTransaction?.id) {
-            setError('Some error occured')
-              return
-          }
-          const signInResult = await signIn("credentials", {
-              redirect: false,
-              transactionId: currentTransaction.id,
-          })
-          if (signInResult?.error) {
-              setError('Sign-in failed')
-          }
-          if (signInResult?.ok) {
-            const redirectTo = decodeURIComponent(searchParams.get('redirect') || '/dashboard');
-            router.push(redirectTo)
-          }
+      if (result === 'SUCCESS' && data) {
+        setCurrentTransaction({
+          id: data.id,
+          status: data.status,
+          data: data
+        })
+        if (!data?.id) {
+          setError('Some error occured')
+            return
+        }
+        const signInResult = await signIn("credentials", {
+            redirect: false,
+            transactionId: data.id,
+        })
+        if (signInResult?.error) {
+            setError('Sign-in failed')
+        }
+        if (signInResult?.ok) {
+          const redirectTo = decodeURIComponent(searchParams.get('redirect') || '/dashboard');
+          router.push(redirectTo)
+        }
       }
-
       setDisableButton(false)
   }
 
@@ -150,8 +167,12 @@ export default function InputWithButton() {
                 <Link className='inline' href='/'><p className="inline text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p></Link>
               </div>
               {
-                currentTransaction && 
+                (currentTransaction && !isMobileClient) &&
                 <BankIdLoginWithQrCodeComponent onComplete={onBankIdComplete} transactionId={currentTransaction.id}/>
+              }
+              {
+                ((currentTransaction||completedTransactionId) && isMobileClient) &&
+                  <BankIdLoginWithNativeAppComponent onComplete={onBankIdComplete} completedTransactionId={completedTransactionId} transactionId={currentTransaction?.id ?? null} />
               }
             </div>
           </div>

@@ -18,7 +18,7 @@ export default async function Page() {
         return redirect("/dashboard");
     }
 
-    let users = await getUsers(0, 3)
+    let users = await getUsers(0, 10)
     console.log('total: ' + users.total)
 
     return (

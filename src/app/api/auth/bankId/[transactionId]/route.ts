@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET (req: NextRequest, { params }:{ params: Promise<{ transactionId: string }> }){
     const  transactionId  = (await params).transactionId
+    console.log('GET new transaction: ' + transactionId)
 
     try{
         const st = await getTransaction(transactionId);
