@@ -167,12 +167,8 @@ export default function InputWithButton() {
                 <Link className='inline' href='/'><p className="inline text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p></Link>
               </div>
               {
-                (currentTransaction && !isMobileClient) &&
+                (currentTransaction) &&
                 <BankIdLoginWithQrCodeComponent onComplete={onBankIdComplete} transactionId={currentTransaction.id}/>
-              }
-              {
-                ((currentTransaction||completedTransactionId) && isMobileClient) &&
-                  <BankIdLoginWithNativeAppComponent onComplete={onBankIdComplete} completedTransactionId={completedTransactionId} transactionId={currentTransaction?.id ?? null} />
               }
             </div>
           </div>

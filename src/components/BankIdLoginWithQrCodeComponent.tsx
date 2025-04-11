@@ -2,6 +2,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import QRCodeStyling from "qr-code-styling";
 import { RefreshCw } from "lucide-react";
+import { redirect } from "next/navigation";
+
+const MOBILE_BREAKPOINT = 768
 
 export default function BankIdLoginWithQrCodeComponent({ transactionId, onComplete }: { transactionId: string, onComplete:(result:'SUCCESS'|'ERROR'|'CANCEL'|'FAILED'|'RETRY', data:TransactionResponseDTO|null)=>void }) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -11,7 +14,16 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
   const [timerIntervalId, setTimerIntervalId] = useState<NodeJS.Timeout>();
   const transactionIdMem = useRef(''); // used to prevent double rendering, will cause staring transaction faild
 
+  const isUserAgentMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  )
+  const isNarrowScreen = window.innerWidth < MOBILE_BREAKPOINT
+  const isMobile = isUserAgentMobile || isNarrowScreen
+
   useEffect(() => {
+    if(isMobile){
+      return
+    }
     const qr = new QRCodeStyling({
       width: 300,
       height: 300,
@@ -106,6 +118,11 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
       }
     }, 1000);
     setTimerIntervalId(intervalId)
+
+
+    if(isMobile){
+      redirect(`bankid:///?autostarttoken=${startTransactionData.bankId?.autoStartToken}`)
+    }
   }
 
   useEffect(() => {
@@ -116,12 +133,30 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
 }, [transactionId]);
 
   useEffect(() => {
-    if (qrCode && transactionData?.bankId?.qrData) {
+    if (!isMobile && qrCode && transactionData?.bankId?.qrData) {
       qrCode.update({
         data: transactionData?.bankId?.qrData,
       });
     }
   }, [transactionData, qrCode]);
+
+  if(isMobile){
+    return(
+      <div className="text-sm">
+        {!transactionData  || transactionData.status == 'new' ?
+          <p>Initiating BankID login process...</p>
+          : transactionData.status == 'started' ?
+              <p>Complete the login in the BankID app...</p>
+          : transactionData.status == 'failed' ?
+              <p>Obss... Something gone wrong</p>
+          : transactionData.status == 'complete' ?
+              <p>You are being logged in...</p>
+          : 
+          <p>Obss... Something gone wrong</p>
+        }
+    </div>
+    )
+  }
 
   return (
     <div>
