@@ -1,5 +1,5 @@
 export type CairoHttpResponse<T> = {
-    status: "success" | "error" | "failed";
+    status: "success" | "error" | "failed" | 'aborted';
     statusCode?: number;
     requestTime?: number;
     body?: string;

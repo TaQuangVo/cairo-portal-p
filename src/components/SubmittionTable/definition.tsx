@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
+import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService";
 
 export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
     {
@@ -66,11 +66,9 @@ export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
     {
       header: "AccountID",
       accessorFn: (row) => {
-        if(row.status == 'success'){
-          const response: SequentialCustomerAccountPortfolioCreatioResult = row.data as SequentialCustomerAccountPortfolioCreatioResult
+        if(row.data){
+          const response: SequentialCustomerAccountPortfolioCreationResult = row.data as SequentialCustomerAccountPortfolioCreationResult
           return response.portfolioCreation.payload.portfolioDescription ?? ''
-        }else if(row.status == 'pending'){
-          return row.messageBody?.portfolio?.portfolioDescription ?? ''
         }else{
           return ''
         }

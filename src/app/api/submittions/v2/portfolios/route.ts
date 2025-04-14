@@ -45,12 +45,12 @@ export async function POST (req: NextRequest){
                     submissionResultId: submissionResultId,
                 }
           },
+          retries: 3,
         })
 
         const resData:NewPortfolioResponse = {
             status: 'pending',
             requestType: 'Create Portfolio',
-            messageBody: requestBodies,
             requestBody: body,
             messages:'Portfolio creation in progress, JobId: ' + result.messageId,
             dataType: null,

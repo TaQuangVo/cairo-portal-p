@@ -2,14 +2,14 @@ import { createAccount, createCustomer, createPortfolio, createSubscription, fet
 import { CairoAccountCreationPayload, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoAccountCreationResponse, CairoPortfolioCreationPayload, CairoHttpResponse, CairoPortfolioCreationResponse, CairoCustomer, CairoResponseCollection, CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse, CairoPortalUser } from "@/lib/cairo.type"
 
 export type CairoExercutionResult<P ,T> = {
-    status: 'not exercuted' | 'success' | 'error' | 'failed' | 'skipped',
+    status: 'not exercuted' | 'success' | 'error' | 'failed' | 'skipped' | 'aborted',
     statusCode?: number,
     response?: CairoHttpResponse<T>,
     skippedOn?: any,
     payload: P 
 }
 
-export type SequentialCustomerAccountPortfolioCreatioResult = {
+export type SequentialCustomerAccountPortfolioCreationResult = {
     customerCreation: CairoExercutionResult<CairoCustomerCreationPayload, CairoCustomerCreationResponse>,
     portalUserRegistration: CairoExercutionResult<string, CairoPortalUser>,
     accountCreation: CairoExercutionResult<CairoAccountCreationPayload, CairoAccountCreationResponse>,
@@ -30,8 +30,8 @@ export class CreationWaring<T> extends Error {
 
 export type createCustomerAccountPortfolioWarning = 'SKIP CUSTOMER CREATION'
 
-export async function getCustomerByPersonalNumber(personalNumber: string): Promise<CairoExercutionResult<String, CairoResponseCollection<CairoCustomer>>> {
-    const result = await fetchCustomerByPersonalNumber(personalNumber)
+export async function getCustomerByPersonalNumber(personalNumber: string, signal: AbortSignal): Promise<CairoExercutionResult<String, CairoResponseCollection<CairoCustomer>>> {
+    const result = await fetchCustomerByPersonalNumber(personalNumber, signal)
     return {
         status: result.status,
         statusCode: result.statusCode,
@@ -40,7 +40,7 @@ export async function getCustomerByPersonalNumber(personalNumber: string): Promi
     }
 }
 
-export async function createSubscriptions(subscriptionCreationPayloads: CairoSubscriptionCreationPayload[], revalidateExisting:boolean): Promise<CairoExercutionResult<CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse>[]>{
+export async function createSubscriptions(subscriptionCreationPayloads: CairoSubscriptionCreationPayload[], revalidateExisting:boolean, signal: AbortSignal): Promise<CairoExercutionResult<CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse>[]>{
     if(!subscriptionCreationPayloads || subscriptionCreationPayloads.length == 0){
         console.log('Subscription creation payload not found')
         return []
@@ -59,7 +59,7 @@ export async function createSubscriptions(subscriptionCreationPayloads: CairoSub
     // if revalidate existing, get the subscription from cairo and map it.
     let existingSubscriptions:CairoSubscriptionCreationPayload[] = []
     if(revalidateExisting){
-        const fetchResponse = await fetchSubscriptionByPortfolioCode(subscriptionCreationPayloads[0].portfolioCode)
+        const fetchResponse = await fetchSubscriptionByPortfolioCode(subscriptionCreationPayloads[0].portfolioCode, signal)
         if(fetchResponse.status == 'success'){
             existingSubscriptions = fetchResponse.data?.results ?? []
         }
@@ -91,7 +91,7 @@ export async function createSubscriptions(subscriptionCreationPayloads: CairoSub
     await Promise.all(
         results.map(async (result) => {
           if (result.status === 'not exercuted') {
-            const response = await createSubscription(result.payload);
+            const response = await createSubscription(result.payload, signal);
             result.status = response.status;
             result.statusCode = response.statusCode;
             result.response = response;
@@ -102,10 +102,8 @@ export async function createSubscriptions(subscriptionCreationPayloads: CairoSub
     return results;
 }
 
-export async function createCustomerAccountPortfolio(customerCreationPayload: CairoCustomerCreationPayload, accountCreationPayload: CairoAccountCreationPayload, portfolioCreationPayload: CairoPortfolioCreationPayload, subscriptionCreationPayloads:CairoSubscriptionCreationPayload[], muteWarning:createCustomerAccountPortfolioWarning[]): Promise<SequentialCustomerAccountPortfolioCreatioResult>{
-    let skipCustomerCreation = false
-
-    let result: SequentialCustomerAccountPortfolioCreatioResult = {
+export function initSequentialCustomerAccountPortfolioCreationResult(customerCreationPayload: CairoCustomerCreationPayload, accountCreationPayload: CairoAccountCreationPayload, portfolioCreationPayload: CairoPortfolioCreationPayload, subscriptionCreationPayloads:CairoSubscriptionCreationPayload[]): SequentialCustomerAccountPortfolioCreationResult{
+    let result: SequentialCustomerAccountPortfolioCreationResult = {
         customerCreation: {
             status: 'not exercuted',
             statusCode: undefined,
@@ -137,9 +135,16 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
             payload: sub 
         }))
     }
+    return result
+}
+
+export async function createCustomerAccountPortfolio(customerCreationPayload: CairoCustomerCreationPayload, accountCreationPayload: CairoAccountCreationPayload, portfolioCreationPayload: CairoPortfolioCreationPayload, subscriptionCreationPayloads:CairoSubscriptionCreationPayload[], muteWarning:createCustomerAccountPortfolioWarning[], signal: AbortSignal): Promise<SequentialCustomerAccountPortfolioCreationResult>{
+    let skipCustomerCreation = false
+
+    let result: SequentialCustomerAccountPortfolioCreationResult = initSequentialCustomerAccountPortfolioCreationResult(customerCreationPayload, accountCreationPayload, portfolioCreationPayload, subscriptionCreationPayloads)
 
     // get customer by personal number from cairo
-    const getCustomerResult = await getCustomerByPersonalNumber(customerCreationPayload.organizationId)
+    const getCustomerResult = await getCustomerByPersonalNumber(customerCreationPayload.organizationId, signal)
     let existingCustomerCode: string | undefined
 
 
@@ -165,7 +170,7 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
 
     //create customer if not skipped
     if(!skipCustomerCreation){
-        const customerCreationResponse = await createCustomer(customerCreationPayload)
+        const customerCreationResponse = await createCustomer(customerCreationPayload, signal)
 
         result.customerCreation.status = customerCreationResponse.status
         result.customerCreation.statusCode = customerCreationResponse.statusCode
@@ -184,7 +189,7 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
         }
     }
 
-    const portalRegistrationRes = await setupPortalPermission(accountCreationPayload.customerCode)
+    const portalRegistrationRes = await setupPortalPermission(accountCreationPayload.customerCode, signal)
     result.portalUserRegistration.status = portalRegistrationRes.status
     result.portalUserRegistration.response = portalRegistrationRes
     result.portalUserRegistration.statusCode = portalRegistrationRes.statusCode
@@ -194,7 +199,7 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     }
 
     // Create account
-    const accountCreationResponse = await createAccount(accountCreationPayload)
+    const accountCreationResponse = await createAccount(accountCreationPayload, signal)
     result.accountCreation.status = accountCreationResponse.status
     result.accountCreation.payload = accountCreationPayload
     result.accountCreation.statusCode = accountCreationResponse.statusCode
@@ -214,7 +219,7 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     }
 
     // Create portfolio
-    const portfolioCreationResponse = await createPortfolio(portfolioCreationPayload)
+    const portfolioCreationResponse = await createPortfolio(portfolioCreationPayload, signal)
     result.portfolioCreation.status = portfolioCreationResponse.status
     result.portfolioCreation.payload = portfolioCreationPayload
     result.portfolioCreation.statusCode = portfolioCreationResponse.statusCode
@@ -230,7 +235,7 @@ export async function createCustomerAccountPortfolio(customerCreationPayload: Ca
     }
 
     const shouldRevalidateExisting = result.portfolioCreation.status === 'skipped'
-    const submittionCreationResponse = await createSubscriptions(subscriptionCreationPayloads, shouldRevalidateExisting)
+    const submittionCreationResponse = await createSubscriptions(subscriptionCreationPayloads, shouldRevalidateExisting, signal)
     result.subscriptionCreation = submittionCreationResponse
 
     return result

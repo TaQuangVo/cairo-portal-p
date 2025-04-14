@@ -5,13 +5,14 @@ import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustome
 
 async function makeRequest<T>(
   url: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<CairoHttpResponse<T>> {
+  const start = performance.now(); // Start timer
   try {
     const baseUrl = process.env.CAIRO_URL;
     const fullUrl = baseUrl + url;
 
-    const request = fetch(fullUrl, {
+    const response = await fetch(fullUrl, {
       ...options,
       headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -19,9 +20,6 @@ async function makeRequest<T>(
         ...(options?.headers || {}),
       },
     });
-
-    const start = performance.now(); // Start timer
-    const response = await request;
 
     const responseBody = await response.text(); // Always get response as text
     const contentType = response.headers.get("Content-Type") || "";
@@ -46,27 +44,39 @@ async function makeRequest<T>(
       data: parsedData, // Store parsed JSON (if applicable)
     };
   } catch (error) {
-    console.error("Error fetching data:", error);
+    const duration = performance.now() - start; // End timer
+    //console.error("Error fetching data:", error);
+
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.log('Fetch aborted');
+      return {
+        status: "aborted",
+        statusCode: undefined,
+        requestTime: duration,
+        body: 'Request aborted',
+        data: undefined,
+      };
+    }
 
     return {
       status: "error",
       statusCode: undefined,
-      requestTime: undefined,
-      body: 'Failed to exercute fetch: ' + String(error), // Ensure error message is included
+      requestTime: duration,
+      body: 'Failed to exercute fetch: ' + String(error),
       data: undefined,
     };
   }
 }
 
-export async function fetchAccountByCustomerCode(customerCode: string) {
-  return makeRequest<CairoResponseCollection<CairoAccount>>(`/accounts/?customerCode=${customerCode}`);
+export async function fetchAccountByCustomerCode(customerCode: string, signal: AbortSignal) {
+  return makeRequest<CairoResponseCollection<CairoAccount>>(`/accounts/?customerCode=${customerCode}`, { signal });
 }
 
-export async function fetchCustomerContactsByCustomerCode(customerCode: string) {
-  return makeRequest<CairoResponseCollection<CairoCustomerContact>>(`/customerContacts/?customerCode=${customerCode}`);
+export async function fetchCustomerContactsByCustomerCode(customerCode: string, signal: AbortSignal) {
+  return makeRequest<CairoResponseCollection<CairoCustomerContact>>(`/customerContacts/?customerCode=${customerCode}`, { signal });
 }
  
-export async function fetchCustomerByPersonalNumber(personalNumber: string, withAccount:boolean = false, withPortfolio:boolean = false, withContacts:boolean = false) {
+export async function fetchCustomerByPersonalNumber(personalNumber: string, signal: AbortSignal, withAccount:boolean = false, withPortfolio:boolean = false, withContacts:boolean = false,) {
   //`/customers/?organizationId=${personalNumber}&_no_cache=true&_fields=+accounts,+portfolios,+customerContacts`
   let url = `/customers/?organizationId=${personalNumber}&_no_cache=true`
   if(withAccount || withPortfolio || withContacts){
@@ -83,47 +93,51 @@ export async function fetchCustomerByPersonalNumber(personalNumber: string, with
     url = url.slice(0, -1) // remove last comma
   }
 
-  const customer = await makeRequest<CairoResponseCollection<CairoCustomer>>(url);
+  const customer = await makeRequest<CairoResponseCollection<CairoCustomer>>(url, { signal });
   return customer
 }
 
-export async function createCustomer(customerCreationPayload: CairoCustomerCreationPayload) {
+export async function createCustomer(customerCreationPayload: CairoCustomerCreationPayload, signal: AbortSignal) {
   return makeRequest<CairoCustomerCreationResponse>(`/customers`,
     {
       method: "POST",
       body: JSON.stringify(customerCreationPayload),
+      signal,
     }
   );
 }
 
-export async function setupPortalPermission(customerCode: string) {
+export async function setupPortalPermission(customerCode: string, signal: AbortSignal) {
   return makeRequest<CairoPortalUser>(`/portalusers`,
     {
       method: "POST",
       body: JSON.stringify({customerCode: customerCode}),
+      signal
     }
   );
 }
 
-export async function createAccount(accountCreationPayload: CairoAccountCreationPayload) {
+export async function createAccount(accountCreationPayload: CairoAccountCreationPayload, signal: AbortSignal) {
   return makeRequest<CairoAccountCreationResponse>(`/accounts`,
     {
       method: "POST",
       body: JSON.stringify(accountCreationPayload),
+      signal
     }
   );
 }
 
-export async function fetchSubscriptionByPortfolioCode(portfolioCode: string){
-  const subscriptions = await makeRequest<CairoResponseCollection<CairoSubscription>>(`/subscriptions/?portfolioCode=${portfolioCode}`);
+export async function fetchSubscriptionByPortfolioCode(portfolioCode: string, signal: AbortSignal) {
+  const subscriptions = await makeRequest<CairoResponseCollection<CairoSubscription>>(`/subscriptions/?portfolioCode=${portfolioCode}`, { signal });
   return subscriptions
 }
 
-export async function createSubscription(subscriptionCreationPayload: CairoSubscriptionCreationPayload){
+export async function createSubscription(subscriptionCreationPayload: CairoSubscriptionCreationPayload, signal: AbortSignal) {
   const result =  await makeRequest<CairoSubscriptionCreationResponse>(`/subscriptions`,
     {
       method: "POST",
       body: JSON.stringify(subscriptionCreationPayload),
+      signal
     }
   );
 
@@ -143,11 +157,12 @@ export async function createSubscription(subscriptionCreationPayload: CairoSubsc
     return result
 }
 
-export async function createPortfolio(portfolioCreationPayload: CairoPortfolioCreationPayload) {
+export async function createPortfolio(portfolioCreationPayload: CairoPortfolioCreationPayload, signal: AbortSignal) {
   const result = await makeRequest<CairoPortfolioCreationResponse>(`/portfolios`,
     {
       method: "POST",
       body: JSON.stringify(portfolioCreationPayload),
+      signal
     }
   );
 

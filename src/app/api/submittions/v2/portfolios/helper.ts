@@ -5,25 +5,19 @@ import { convertOrgNumber, convertPersonalNumber, getBirthdateFromPersonNumber }
 import { getCurrentPortfolioCount } from "@/lib/db";
 import { definedPortfolioType } from "@/constant/portfolioType";
 import { modelPortfolioMap } from "@/constant/modelPortfolio";
-import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
+import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService";
 
 export interface BaseNewPortfolioResponse {
     status: 'pending' | 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
     requestType: 'Create Portfolio';
     requestBody: CustomerAccountPortfolioCreationPayload;
-    messageBody: {
-        customer: CairoCustomerCreationPayload
-        account: CairoAccountCreationPayload,
-        portfolio: CairoPortfolioCreationPayload,
-        subscriptions: CairoSubscriptionCreationPayload[]
-    }
     messages: string;
 }
 
 export type NewPortfolioResponse =
     | (BaseNewPortfolioResponse & {
           dataType: 'SequentialCustomerAccountPortfolioCreatioResult';
-          data: SequentialCustomerAccountPortfolioCreatioResult;
+          data: SequentialCustomerAccountPortfolioCreationResult;
       })
     | (BaseNewPortfolioResponse & {
           dataType: 'CairoCustomer';
