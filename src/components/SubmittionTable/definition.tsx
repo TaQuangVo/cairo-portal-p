@@ -6,16 +6,21 @@ import { MoreHorizontal } from "lucide-react";
 import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService";
 
 export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
+  {
+    header: "Name",
+    accessorFn: (row) => row.requestBody?.firstname + ' ' + row.requestBody?.surname , // Accessing the nested surname and firstname
+    id: "Name" 
+    ,
+  },
     {
       header: "Personal Number",
       accessorFn: (row) => row.requestBody?.personalNumber, // Accessing the nested personalNumber
       id: "personalNumber", // Explicitly set the id for the column
-    },
-    {
-      header: "Name",
-      accessorFn: (row) => row.requestBody?.firstname + ' ' + row.requestBody?.surname , // Accessing the nested surname and firstname
-      id: "name" 
-      ,
+      cell(props ) {
+        return (
+          <p>{props.getValue() as string}</p>
+        )
+      },
     },
     {
       header: "Status",

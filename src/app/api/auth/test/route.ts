@@ -7,13 +7,13 @@ const secret = process.env.NEXTAUTH_SECRET
 
 
 export async function GET (req: NextRequest){
-    const token = await getToken({ req })
+    //const token = await getToken({ req })
 
-    const me = await fetchCustomerByPersonalNumber('20000507-4018')
+    //const me = await fetchCustomerByPersonalNumber('20000507-4018')
 
-    const sc = await newTransaction();
-    const st = await startTransaction(sc.id);
-    const ge = await getTransaction(sc.id);
+    //const sc = await newTransaction();
+    //const st = await startTransaction(sc.id);
+    //const ge = await getTransaction(sc.id);
 
     return Response.json({messages:'Data saved successfully!'}, {status: 201})
 }

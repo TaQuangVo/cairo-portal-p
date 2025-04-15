@@ -1,4 +1,4 @@
-import { SequentialCustomerAccountPortfolioCreatioResult } from "@/services/cairoService";
+import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService";
 import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload, CairoSubscriptionCreationPayload } from "./cairo.type";
 import { ZodError } from "zod";
 import { RoaringCompanyOverviewRecords, RoaringPopulationRegisterRecord } from "./roaring.type";
@@ -28,12 +28,6 @@ export interface DBBasePortfolioSubmittions {
     status: 'pending' | 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
     requestType: 'Create Portfolio';
     requestBody: CustomerAccountPortfolioCreationPayload;
-    messageBody: {
-        customer: CairoCustomerCreationPayload
-        account: CairoAccountCreationPayload,
-        portfolio: CairoPortfolioCreationPayload,
-        subscriptions: CairoSubscriptionCreationPayload[]
-    }
     messages: string;
     createdBy: string;
     createdAt: Date;
@@ -43,7 +37,7 @@ export interface DBBasePortfolioSubmittions {
 export type DBPortfolioSubmittions =
     | (DBBasePortfolioSubmittions & {
           dataType: 'SequentialCustomerAccountPortfolioCreatioResult';
-          data: SequentialCustomerAccountPortfolioCreatioResult;
+          data: SequentialCustomerAccountPortfolioCreationResult;
       })
     | (DBBasePortfolioSubmittions & {
         dataType: 'CairoCustomer';

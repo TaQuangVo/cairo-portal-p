@@ -6,6 +6,7 @@ import { ZodError } from "zod"
 import { getToken } from "next-auth/jwt"
 import { saveResponseToSubmittion } from "@/services/submittionService"
 import { ObjectId } from "mongodb"
+import { PORTFOLIO_HANDLER_RETRIES } from "@/constant/qstash"
 
 const client = new Client({ token: process.env.QSTASH_TOKEN! })
 
@@ -45,14 +46,15 @@ export async function POST (req: NextRequest){
                     submissionResultId: submissionResultId,
                 }
           },
-          retries: 3,
+          retries: PORTFOLIO_HANDLER_RETRIES,
         })
 
         const resData:NewPortfolioResponse = {
             status: 'pending',
             requestType: 'Create Portfolio',
             requestBody: body,
-            messages:'Portfolio creation in progress, JobId: ' + result.messageId,
+            messages:'Portfolio creation process initiated.',
+            qMessageIs: result.messageId,
             dataType: null,
             data: null
         }

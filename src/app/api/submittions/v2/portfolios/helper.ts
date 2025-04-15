@@ -11,6 +11,7 @@ export interface BaseNewPortfolioResponse {
     status: 'pending' | 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
     requestType: 'Create Portfolio';
     requestBody: CustomerAccountPortfolioCreationPayload;
+    qMessageIs: string,
     messages: string;
 }
 
