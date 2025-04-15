@@ -3,11 +3,12 @@ import { getToken } from "next-auth/jwt"
 import { sendSubmittionFailureReportMail } from "@/services/emailService";
 import { getUserById } from "@/services/userService";
 import { NewPortfolioResponse } from "../submittions/v2/portfolios/helper";
+import { tokenValidator } from "@/utils/jwtAuthUtil";
 
 
 export async function POST (req: NextRequest){
-    const token = await getToken({ req })
-    if(!token){
+    const { isLoggedIn, token } = await tokenValidator(req)
+    if(!isLoggedIn){
         return Response.json({messages:'Not authenticated.'}, {status: 403})
     }
 

@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 
 export default async function Page() {
     const token = await getServerSession(authOptions);
-    if(token === null || token.user === null){
+    if(token === null || token.user === null || token.user.accessTokenExpiry < Date.now()){
         return redirect("/login");
     }
 

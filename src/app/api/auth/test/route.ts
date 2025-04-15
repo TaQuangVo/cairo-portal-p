@@ -15,6 +15,9 @@ export async function GET (req: NextRequest){
     //const st = await startTransaction(sc.id);
     //const ge = await getTransaction(sc.id);
 
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  console.log("Decoded JWT", token);
+
     return Response.json({messages:'Data saved successfully!'}, {status: 201})
 }
 //19460201-3213

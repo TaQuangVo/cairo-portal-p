@@ -21,7 +21,7 @@ const validStatuses: DBPortfolioSubmittions["status"][] = [
 
 export default async function Page({ searchParams }: { params: Params, searchParams: SearchParams }) {
     const token = await getServerSession(authOptions);
-    if(token === null || token.user === null){
+    if(token === null || token.user === null || token.user.accessTokenExpiry < Date.now()){
         return redirect("/login");
     }
 

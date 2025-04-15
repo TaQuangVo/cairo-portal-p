@@ -1,10 +1,15 @@
 import { getPopulationRegister } from "@/services/roaring";
+import { tokenValidator } from "@/utils/jwtAuthUtil";
 import { convertPersonalNumber } from "@/utils/stringUtils";
 import { NextRequest } from "next/server";
 
 export async function GET (req: NextRequest){
-    let personalNumber = req.nextUrl.searchParams.get('personalNumber');
+    const { isLoggedIn } = await tokenValidator(req)
+    if(!isLoggedIn){
+        return Response.json({messages:'Not authenticated.'}, {status: 403})
+    }
 
+    let personalNumber = req.nextUrl.searchParams.get('personalNumber');
     if(!personalNumber){
         return Response.json({messages:'Missing personal number'}, {status: 400})
     }

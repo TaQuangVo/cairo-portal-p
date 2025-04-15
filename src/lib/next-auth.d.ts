@@ -12,6 +12,12 @@ declare module "next-auth/jwt" {
         phoneNumber?: string | null;
         createdAt?: Date;
         updatedAt?: Date;
+
+        accessToken: string;
+        refreshToken: string;
+        accessTokenExpiry: number; // ms timestamp
+
+        error?: 'SessionExpired' | 'RefreshAccessTokenError';
     }
 }
 
@@ -28,6 +34,8 @@ declare module "next-auth" {
       phoneNumber?: string | null;
       createdAt?: Date;
       updatedAt?: Date;
+
+      accessTokenExpiry: number; // ms timestamp
     };
   }
 
@@ -42,5 +50,9 @@ declare module "next-auth" {
     phoneNumber?: string | null;
     createdAt?: Date;
     updatedAt?: Date;
+
+    accessToken: string;
+    refreshToken: string;
+    accessTokenExpiry: number; // ms timestamp
   }
 }

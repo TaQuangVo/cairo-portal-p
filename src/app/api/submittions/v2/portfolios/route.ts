@@ -7,15 +7,17 @@ import { getToken } from "next-auth/jwt"
 import { saveResponseToSubmittion } from "@/services/submittionService"
 import { ObjectId } from "mongodb"
 import { PORTFOLIO_HANDLER_RETRIES } from "@/constant/qstash"
+import { tokenValidator } from "@/utils/jwtAuthUtil"
 
 const client = new Client({ token: process.env.QSTASH_TOKEN! })
 
 // POST /api/submittions/portfolios
 export async function POST (req: NextRequest){
-    const token = await getToken({ req })
-    if(!token){
+    const { isLoggedIn, token } = await tokenValidator(req)
+    if(!isLoggedIn){
         return Response.json({messages:'Not authenticated.'}, {status: 403})
     }
+
     let userId = token.id;
 
     const body = await req.json()

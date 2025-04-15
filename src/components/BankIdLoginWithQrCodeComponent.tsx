@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 const MOBILE_BREAKPOINT = 768
 
-export default function BankIdLoginWithQrCodeComponent({ transactionId, onComplete }: { transactionId: string, onComplete:(result:'SUCCESS'|'ERROR'|'CANCEL'|'FAILED'|'RETRY', data:TransactionResponseDTO|null)=>void }) {
+export default function BankIdLoginWithQrCodeComponent({ transactionId, onComplete }: { transactionId: string, onComplete:(result:'SUCCESS'|'ERROR'|'CANCEL'|'FAILED'|'RETRY', data:TransactionResponseDTO|null, message: string)=>void }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null)
   const [transactionData, setTransactionData] = useState<TransactionResponseDTO|null>(null)
@@ -51,13 +51,15 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
       })
 
       if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+        complete('ERROR', null, 'Failed to start BankID transaction')
+        return null
       }
 
       const data: TransactionResponseDTO = await response.json();
       return data
 
     }catch(e){
+      complete('ERROR', null, 'Failed to start BankID transaction')
       return null
     }
   }
@@ -69,23 +71,25 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
       })
 
       if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+        complete('ERROR', null, 'Failed to get BankID transaction')
+        return null
       }
 
       const data: TransactionResponseDTO = await response.json();
       return data
 
     }catch(e){
+        complete('ERROR', null, 'Failed to get BankID transaction')
       return null
     }
   }
 
-  const complete = ( result:'SUCCESS'|'ERROR'|'CANCEL'|'FAILED'|'RETRY', data:TransactionResponseDTO|null) => {
+  const complete = ( result:'SUCCESS'|'ERROR'|'CANCEL'|'FAILED'|'RETRY', data:TransactionResponseDTO|null, message:string) => {
     setBlueQrCode(true)
 
-    onComplete(result, data)
+    onComplete(result, data, message)
 
-    if(result == 'CANCEL'){
+    if(timerIntervalId){
       clearInterval(timerIntervalId);
     }
   }
@@ -97,7 +101,7 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
     setTransactionData(startTransactionData);
 
     if(startTransactionData?.status != 'started'){
-      complete('ERROR', startTransactionData)
+      complete('ERROR', startTransactionData, 'Something gone wrong, try again later')
       return
     }
 
@@ -106,13 +110,13 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
       setTransactionData(getTransactionData)
 
       if(getTransactionData?.status == 'failed'){
-        complete('FAILED', getTransactionData)
+        complete('FAILED', startTransactionData, 'Authorization failed, try again later')
         clearInterval(intervalId);
         return
       }
 
       if(getTransactionData?.status == 'complete'){
-        complete('SUCCESS', getTransactionData)
+        complete('SUCCESS', startTransactionData, 'Authorization process successed')
         clearInterval(intervalId);
         return
       }
@@ -175,13 +179,13 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
       {(transactionData && blueQrCode)
         ? <p className="text-sm">QR code has expired. 
             <span className="cursor-pointer underline ml-0.5">
-              <strong onClick={() => complete('RETRY', null)}>Retry</strong>
+              <strong onClick={() => complete('RETRY', null, 'Retrying...')}>Retry</strong>
             </span>
           </p> 
         : (transactionData && ! blueQrCode) 
         ? <p className="text-sm">Scan the QR code using bankId app. 
             <span className="cursor-pointer underline ml-0.5">
-              <strong onClick={() => complete('CANCEL', null)}>Cancel</strong>
+              <strong onClick={() => complete('CANCEL', null, 'BankID process canceled')}>Cancel</strong>
             </span>
           </p>
         : 

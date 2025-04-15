@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 import { DBBasePortfolioSubmittions } from "@/lib/db.type";
 import { getSubmittions } from "@/services/submittionService";
+import { tokenValidator } from "@/utils/jwtAuthUtil";
 
 export async function GET (req: NextRequest){
-    console.log('userIdParam, personalNumber, status, page, limit')
-    const token = await getToken({ req })
-    if(!token){
+    const { isLoggedIn, token, isAdmin } = await tokenValidator(req)
+    if(!isLoggedIn){
         return Response.json({messages:'Not authenticated.'}, {status: 403})
     }
+
     const userId = token.id;
-    const userRole = token.role;
 
     const validStatuses: DBBasePortfolioSubmittions["status"][] = [
         "failed",
@@ -29,13 +29,13 @@ export async function GET (req: NextRequest){
     const limit = parseInt(searchParams.get("limit") || "10", 10); // Default limit 20
 
     // If the user is not an admin, they can only view their own submittions
-    if(userRole !== 'admin' && userIdParam !== userId){
+    if(!isAdmin && userIdParam !== userId){
         return Response.json({
             status: 'success',
             data: [] 
         })
     }
-    if(userRole !== 'admin'){
+    if(!isAdmin){
         userIdParam = userId;
     }
 

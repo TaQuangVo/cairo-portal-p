@@ -16,8 +16,6 @@ import { useState } from "react";
 import Link from 'next/link';
 import { convertPersonalNumber } from '@/utils/stringUtils';
 import Image from 'next/image';
-import { useIsMobileWebClient } from '@/hooks/userMobileWebClient';
-import BankIdLoginWithNativeAppComponent from '@/components/BankIdLoginWithNativeAppComponent';
 
 type CurrentTransaction = {
   id:string,
@@ -32,31 +30,33 @@ export default function InputWithButton() {
   const [ssn, setSsn] = useState<string>('')
   const [disableButon, setDisableButton] = useState<boolean>(false)
   const searchParams = useSearchParams();
-  const isMobileClient = useIsMobileWebClient()
 
-  const completedTransactionId = searchParams.get('completedTransactionId')
 
     // Mark async function properly and define return type as Promise<void>
     const onBankIdComplete = async (
       result: 'SUCCESS' | 'ERROR' | 'CANCEL' | 'FAILED' | 'RETRY', 
-      data: TransactionResponseDTO | null
+      data: TransactionResponseDTO | null,
+      message: string
     ): Promise<void> => {
 
-      // Handle different result cases
+      if (result === 'ERROR') {
+        setError(message)
+      }      
       if (result === 'FAILED' && data) {
         setCurrentTransaction({
           id: data.id,
           status: data.status,
           data: data
         })
-        setError('Failed to login user.')
+        setError(message)
       }
-      // Handle different result cases
       if (result === 'CANCEL') {
-          setCurrentTransaction(null)
+        setError(message)
+        setCurrentTransaction(null)
       }
       if (result === 'RETRY') {
-          handleGetLoginSession()
+        setError(message)
+        handleGetLoginSession()
       }
       if (result === 'SUCCESS' && data) {
         setCurrentTransaction({
@@ -117,7 +117,8 @@ export default function InputWithButton() {
             method: "GET",
         })
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+          setDisableButton(false)
+          return setError('Something gone wrong, try again later.');
         }
 
         const data: NewTransactionResponse = await response.json();

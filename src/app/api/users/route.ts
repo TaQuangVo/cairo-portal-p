@@ -3,9 +3,9 @@ import { createUser, getUserById, getUserByPersonalNumber, getUsers, searchUsers
 import { toUserCreate, toUserUpdate, verifyBodyUserCreate, verifyBodyUserUpdate } from "./helper";
 import { getToken } from "next-auth/jwt";
 import { convertPersonalNumber } from "@/utils/stringUtils";
+import { tokenValidator } from "@/utils/jwtAuthUtil";
 
 export async function GET (req: NextRequest){
-    console.log('hello')
     let personalNumber = req.nextUrl.searchParams.get('personalNumber');
     let searchPersonalNumber = req.nextUrl.searchParams.get('searchPersonalNumber');
     let id = req.nextUrl.searchParams.get('id');
@@ -40,10 +40,11 @@ export async function GET (req: NextRequest){
         }
     }
 
-    const token = await getToken({ req })
-    if(!token || token.role !== 'admin'){
+    const { isLoggedIn, isAdmin } = await tokenValidator(req)
+    if(!isLoggedIn || !isAdmin){
         return Response.json({messages:'Not authenticated.'}, {status: 403})
     }
+
 
     if(searchPersonalNumber){
         console.log("Search for: " + searchPersonalNumber)

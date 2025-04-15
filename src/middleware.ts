@@ -16,21 +16,22 @@ function matchesPattern(pathname: string, patterns: string[]): boolean {
 }
 
 export default async function middleware(req: NextRequest): Promise<NextResponse> {
-  const token = await getToken({ req }) as { role?: string } | null;
+  const token = await getToken({ req });
   const { pathname } = req.nextUrl;
-
   const fullPath = req.nextUrl.pathname + req.nextUrl.search;
 
-  if (pathname === "/login" && token) {
+  const isTokenValid = token && !token.error && Date.now() < token.accessTokenExpiry;
+
+  if (pathname === "/login" && isTokenValid) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  if (matchesPattern(pathname, protectedRoutes) && !token) {
+  if (matchesPattern(pathname, protectedRoutes) && !isTokenValid) {
     console.log("redirecting to login");
     return NextResponse.redirect(new URL("/login?redirect="+encodeURIComponent(fullPath), req.url));
   }
 
-  if (matchesPattern(pathname, adminRoutes) && (!token || token.role !== "admin")) {
+  if (matchesPattern(pathname, adminRoutes) && (!isTokenValid || token.role !== "admin")) {
     return NextResponse.redirect(new URL("/login?redirect="+encodeURIComponent(fullPath), req.url));
   }
 

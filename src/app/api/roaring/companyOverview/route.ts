@@ -1,10 +1,15 @@
 import { getCompanyOverview } from "@/services/roaring";
+import { tokenValidator } from "@/utils/jwtAuthUtil";
 import { convertOrgNumber } from "@/utils/stringUtils";
 import { NextRequest } from "next/server";
 
 export async function GET (req: NextRequest){
-    let orgNumber = req.nextUrl.searchParams.get('orgNumber');
+    const { isLoggedIn } = await tokenValidator(req)
+    if(!isLoggedIn){
+        return Response.json({messages:'Not authenticated.'}, {status: 403})
+    }
 
+    let orgNumber = req.nextUrl.searchParams.get('orgNumber');
     if(!orgNumber){
         return Response.json({messages:'Missing personal number'}, {status: 400})
     }
