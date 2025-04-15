@@ -18,7 +18,8 @@ import { signOut } from "next-auth/react";
 
 const monoton = Monoton({
     variable: "--font-geist-sans",
-    weight: "400"
+    weight: "400",
+    subsets: ["latin"],
 });
 
 export const SessionRefresher = ({children}:{ children: ReactNode}) => { 
