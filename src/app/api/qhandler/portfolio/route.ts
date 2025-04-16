@@ -1,8 +1,8 @@
-import { createCustomerAccountPortfolio, initSequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService"
 import { verifySignatureAppRouter } from "@upstash/qstash/nextjs"
 import { updateResponseToSubmission } from "@/services/submittionService"
-import { NewPortfolioResponse } from "../../submittions/v2/portfolios/helper"
+import { NewPortfolioResponse, PortfolioCreationMessageBody } from "../../submittions/v2/portfolios/helper"
 import { PORTFOLIO_HANDLER_RETRIES } from "@/constant/qstash"
+import { creationSequence } from "@/services/cairoServiceV2"
 
 // 👇 Verify that this messages comes from QStash
 export const POST = verifySignatureAppRouter(async (req: Request) => {
@@ -21,26 +21,48 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       controller.abort();
     }, 50000); // 50s
 
-  const body = await req.json()
+  const body:PortfolioCreationMessageBody = await req.json()
+
   const cairoCustomer = body.customer
   const cairoAccount = body.account
   const cairoPortfolio = body.portfolio
   const cairoPortfolioSubscription = body.subscriptions
+  const cairoBankAccount = body.bankAccount
+  const cairoMandate = body.mandate
+  const cairoInstruction = body.instruction
+
   const rawBody = body.rawBody
   const constext = body.constext
 
   try{
-    const response = await createCustomerAccountPortfolio(cairoCustomer, cairoAccount, cairoPortfolio, cairoPortfolioSubscription, ['SKIP CUSTOMER CREATION'], signal)
+    const response = await creationSequence(cairoCustomer, cairoAccount, cairoPortfolio, cairoPortfolioSubscription, cairoBankAccount, cairoMandate, cairoInstruction, signal)
+
+    clearTimeout(timeoutId);
 
     const customerCreationFailed = response.customerCreation.status !== 'success' && response.customerCreation.status !== 'skipped'
     const portfolioCreationFailed = response.portfolioCreation.status !== 'success' && response.portfolioCreation.status !== 'skipped'
     const accountCreationFailed = response.accountCreation.status !== 'success' && response.accountCreation.status !== 'skipped'
-    const portalUserRegistrationFailed = response.portalUserRegistration.status !== 'success' && response.portalUserRegistration.status !== 'skipped'
-    const subscriptionCreationFailed = response.subscriptionCreation.every(res => res.status === 'success' || res.status === 'skipped')
+    const portalUserRegistrationFailed = response.portalUserRegistration && response.portalUserRegistration.status !== 'success' && response.portalUserRegistration.status !== 'skipped'
+    const subscriptionCreationFailed = !response.subscriptionCreation.every(res => res.status === 'success' || res.status === 'skipped')
 
-    const isPartialFailure = (portfolioCreationFailed || accountCreationFailed || portalUserRegistrationFailed || subscriptionCreationFailed) && !customerCreationFailed
-    const isSuccess = !(portfolioCreationFailed || accountCreationFailed || portalUserRegistrationFailed || subscriptionCreationFailed || customerCreationFailed)
-    const status = isPartialFailure ? 'partial failure' : !isSuccess ? 'failed' : 'success'
+    const bankAccountCreationFailed = response.bankAccountCreation && (response.bankAccountCreation.status !== 'success' && response.bankAccountCreation.status !== 'skipped')
+    const mandateCreationFailed = response.mandateCreation && (response.mandateCreation.status !== 'success' && response.mandateCreation.status !== 'skipped')
+    const instructionCreationFailed = response.instructionCreation && !response.instructionCreation.every(res => res.status === 'success' || res.status === 'skipped')
+
+    const isPartialFailure = (portfolioCreationFailed || accountCreationFailed || portalUserRegistrationFailed || subscriptionCreationFailed || bankAccountCreationFailed || mandateCreationFailed || instructionCreationFailed) && !customerCreationFailed
+    const isSuccess = !(portfolioCreationFailed || accountCreationFailed || portalUserRegistrationFailed || subscriptionCreationFailed || bankAccountCreationFailed || mandateCreationFailed || instructionCreationFailed || customerCreationFailed)
+    console.log("isSuccess:" + isSuccess)
+    console.log('portalUserRegistrationFailed:', portalUserRegistrationFailed)
+    console.log('customerCreationFailed:', customerCreationFailed)
+    console.log('portfolioCreationFailed:', portfolioCreationFailed)
+    console.log('accountCreationFailed:', accountCreationFailed)
+    console.log('subscriptionCreationFailed:', subscriptionCreationFailed)
+    console.log('bankAccountCreationFailed:', bankAccountCreationFailed)
+    console.log('mandateCreationFailed:', mandateCreationFailed)
+    console.log('instructionCreationFailed:', instructionCreationFailed)
+    console.log('isPartialFailure:', isPartialFailure)
+
+
 
     let retried = 10000
     let message = ''

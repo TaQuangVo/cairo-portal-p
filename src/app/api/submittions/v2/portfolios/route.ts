@@ -1,13 +1,14 @@
 import { Client } from "@upstash/qstash"
 
 import { NextRequest } from "next/server"
-import { CustomerAccountPortfolioCreationPayload, customerAccountPortfolioCreationPayloadSchema, NewPortfolioResponse, payloadToRequestBodies} from "./helper"
+import { CustomerAccountPortfolioCreationPayload, customerAccountPortfolioCreationPayloadSchema, NewPortfolioResponse, payloadToRequestBodies, PortfolioCreationMessageBody} from "./helper"
 import { ZodError } from "zod"
 import { getToken } from "next-auth/jwt"
 import { saveResponseToSubmittion } from "@/services/submittionService"
 import { ObjectId } from "mongodb"
 import { PORTFOLIO_HANDLER_RETRIES } from "@/constant/qstash"
 import { tokenValidator } from "@/utils/jwtAuthUtil"
+import { creationSequence } from "@/services/cairoServiceV2"
 
 const client = new Client({ token: process.env.QSTASH_TOKEN! })
 
@@ -31,15 +32,19 @@ export async function POST (req: NextRequest){
         }, {status: 400})
     }
 
+
     try{
         const requestBodies = await payloadToRequestBodies(payload)
         const submissionResultId = new ObjectId().toHexString()
 
-        const qHandlerUrl = process.env.Q_HANDLER_URL
 
-        const result = await client.publishJSON({
-          url: qHandlerUrl + "/portfolio",
-          body: {
+        //const ares = await creationSequence(requestBodies.customer, requestBodies.account, requestBodies.portfolio, requestBodies.subscriptions, requestBodies.bankAccount, requestBodies.mandate, requestBodies.instruction, req.signal)
+        //console.log(JSON.stringify(ares))
+
+        //return
+
+        const qHandlerUrl = process.env.Q_HANDLER_URL
+        const qBody: PortfolioCreationMessageBody = {
             ...requestBodies,
             rawBody: body,
             constext: 
@@ -47,7 +52,10 @@ export async function POST (req: NextRequest){
                     submitterId: userId,
                     submissionResultId: submissionResultId,
                 }
-          },
+        }
+        const result = await client.publishJSON({
+          url: qHandlerUrl + "/portfolio",
+          body: qBody,
           retries: PORTFOLIO_HANDLER_RETRIES,
         })
 

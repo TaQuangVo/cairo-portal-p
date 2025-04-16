@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "./ui/label"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
-import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 import { capitalize } from "@/utils/stringUtils"
 import { DBPortfolioSubmittions } from "@/lib/db.type"
+import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoServiceV2"
 
 
 export const SubmissionDetailsDialog = ({viewingSubmittion, onJsonViewChange}:{viewingSubmittion: DBPortfolioSubmittions, onJsonViewChange: (open:boolean) => void}) => {
@@ -184,6 +184,8 @@ export const SubmissionDetailsDialog = ({viewingSubmittion, onJsonViewChange}:{v
                           }
                         </AccordionContent>
                       </AccordionItem>
+                      {
+                        (viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration &&
                       <AccordionItem value="item-2">
                         <AccordionTrigger>            
                           <div className="w-full flex justify-between">
@@ -191,37 +193,38 @@ export const SubmissionDetailsDialog = ({viewingSubmittion, onJsonViewChange}:{v
                               Portal registration
                             </span>
                             <span className="font-light">
-                              {capitalize((viewingSubmittion?.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration.status ?? '')}
+                              {capitalize((viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration!.status)}
                             </span>
                           </div>
                           </AccordionTrigger>
                         <AccordionContent>
                           <div className="relative grid">
                             <pre  className="p-4 bg-gray-100 rounded-md overflow-auto z-0 no-scrollbar">
-                              {JSON.stringify((viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration.payload, null, 2)}
+                              {JSON.stringify((viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration!.payload, null, 2)}
                             </pre>
                             <span className="absolute top-0 right-0 m-2 bg-black text-white px-2 py-1 rounded-sm z-50">Request body</span>
                           </div>
                           {
-                            (viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration.status === 'skipped' &&
+                            (viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration!.status === 'skipped' &&
                             <div className="relative mt-4 grid">
                               <pre  className="p-4 bg-gray-100 rounded-md overflow-auto z-0 no-scrollbar">
-                                {JSON.stringify((viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration.skippedOn, null, 2)}
+                                {JSON.stringify((viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration!.skippedOn, null, 2)}
                               </pre>
                               <span className="absolute top-0 right-0 m-2 bg-black text-white px-2 py-1 rounded-sm z-50">Skipped on</span>
                             </div>
                           }
                           {
-                            (viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration.status !== 'skipped' &&
+                            (viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration!.status !== 'skipped' &&
                             <div className="relative mt-4 grid">
                               <pre  className="p-4 bg-gray-100 rounded-md overflow-auto z-0 no-scrollbar">
-                                {JSON.stringify((viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration.response, null, 2)}
+                                {JSON.stringify((viewingSubmittion.data as SequentialCustomerAccountPortfolioCreationResult).portalUserRegistration!.response, null, 2)}
                               </pre>
                               <span className="absolute top-0 right-0 m-2 bg-black text-white px-2 py-1 rounded-sm z-50">Response</span>
                             </div>
                           }
                         </AccordionContent>
                       </AccordionItem>
+                      }
                       <AccordionItem value="item-3">
                         <AccordionTrigger>            
                           <div className="w-full flex justify-between">

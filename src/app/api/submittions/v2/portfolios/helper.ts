@@ -1,11 +1,26 @@
 import { z, ZodError } from "zod";
 import { v4 as uuidv4 } from 'uuid';
-import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload, CairoSubscriptionCreationPayload } from "@/lib/cairo.type";
+import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoExternalBankAccountCreationPayload, CairoInstructionCreationPayload, CairoMandateCreationPayload, CairoPortfolioCreationPayload, CairoSubscriptionCreationPayload } from "@/lib/cairo.type";
 import { convertOrgNumber, convertPersonalNumber, getBirthdateFromPersonNumber } from "@/utils/stringUtils";
 import { getCurrentPortfolioCount } from "@/lib/db";
 import { definedPortfolioType } from "@/constant/portfolioType";
 import { modelPortfolioMap } from "@/constant/modelPortfolio";
-import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService";
+import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoServiceV2";
+
+export interface PortfolioCreationMessageBody {
+        customer: CairoCustomerCreationPayload,
+        account: CairoAccountCreationPayload,
+        portfolio: CairoPortfolioCreationPayload,
+        subscriptions: CairoSubscriptionCreationPayload[],
+        bankAccount: CairoExternalBankAccountCreationPayload|null,
+        mandate: CairoMandateCreationPayload | null,
+        instruction: CairoInstructionCreationPayload[] | null,
+        rawBody: any,
+        constext:{
+            submitterId: string,
+            submissionResultId: string,
+        }
+}
 
 export interface BaseNewPortfolioResponse {
     status: 'pending' | 'failed' | 'partial failure' | 'success' | 'warning' | 'error';
@@ -71,6 +86,19 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
     modelPortfolioCode: z.string().refine((value) => {
         return modelPortfolioMap.get(value) != undefined;
     }, { message: "Invalid model portfolio code." }).or(z.literal('')).optional().nullable(),
+
+    
+    payment: z.object({
+        clearingNumber: z.string().min(4, "Clearing number must be at least 4 digits."),
+        accountNumber: z.string().min(6, "Account number must be at least 6 digits."),
+
+        deposit: z.array(z.object({
+            amount: z.number({ message: 'Amount is required' })
+                .min(0.2, { message: "Amount must be at least 20 SEK" }),
+            isRecurring: z.boolean(),
+        }))
+    }).optional().nullable(),
+
 }).superRefine((data, ctx) => {
     if (!data.isCompany) {
         if (!data.firstname || data.firstname.length < 2) {
@@ -176,10 +204,20 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
     }
 });
 
+function randomizePayerCode() {
+    const min = 100000000000; // Minimum 12-digit number
+    const max = 999999999999; // Maximum 12-digit number
+  
+    const random12DigitNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+    return random12DigitNumber;
+  }
+
 export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCreationPayload){
     const customerCode = uuidv4();
     const accountCode = uuidv4(); 
     const portfolioCode = uuidv4();
+    const bankAccountCode = uuidv4();
+    const mandateCode = randomizePayerCode().toString()
 
     const formatedPersonalNumber = !payload.isCompany ? convertPersonalNumber(payload.personalNumber) : convertOrgNumber(payload.personalNumber)
     const dateOfBirth = !payload.isCompany ? getBirthdateFromPersonNumber(formatedPersonalNumber) : ''
@@ -288,12 +326,44 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
         })
     }
 
+    const bankAccountPayload: CairoExternalBankAccountCreationPayload|null = payload.payment ? {
+        externalBankAccountCode: bankAccountCode,
+        customerCode: customerCode, 
+        externalBankAccountTypeCode:  "DEPOSIT_AND_WITHDRAWAL",
+        clearingNumber: payload.payment?.clearingNumber,
+        accountNumber: payload.payment?.accountNumber
+    }:null
+
+    const mandatePayload: CairoMandateCreationPayload|null = payload.payment ? {
+        mandateCode: mandateCode,
+        externalBankAccountCode: bankAccountCode,
+        payerNumberTypeCode: "MANDATECODE"
+    }:null
+
+    const instructionPayload: CairoInstructionCreationPayload[] | null = payload?.payment ? payload.payment.deposit.map((d) => ({
+        mandateCode: mandateCode,
+        instructionCode: uuidv4(),
+        frequencyCode: d.isRecurring ? "MONTHLY" : "MONTHLY",
+        amount: d.amount,
+        debitDate: "2024-01-27",
+        noOfDebitsAllowed: d.isRecurring ? 1 : undefined,
+        allocations: [
+            {
+                accountCode: accountCode,
+                portfolioCode: portfolioCode,
+                weight: 1,
+            },
+        ],
+    })): null;
 
     return {
         customer: customerPayload,
         account: accountPayload,
         portfolio: portfolioPayload,
-        subscriptions: subscriptions
+        subscriptions: subscriptions,
+        bankAccount: bankAccountPayload,
+        mandate: mandatePayload,
+        instruction: instructionPayload,
     }
 }
 

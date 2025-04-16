@@ -29,6 +29,9 @@ export const formDefaultValues = {
 
     portfolioTypeCode: undefined,
     modelPortfolioCode: undefined,
+
+    payment: undefined,
+
 }
 
 export const userPortfolioSchema = z.object({
@@ -65,6 +68,19 @@ export const userPortfolioSchema = z.object({
     modelPortfolioCode: z.string().refine((value) => {
         return modelPortfolioMap.get(value) != undefined;
     }, { message: "Invalid model portfolio code." }).or(z.literal('')).optional().nullable(),
+
+    
+    payment: z.object({
+        clearingNumber: z.string().min(4, "Clearing number must be at least 4 digits."),
+        accountNumber: z.string().min(6, "Account number must be at least 6 digits."),
+
+        deposit: z.array(z.object({
+            amount: z.number({ message: 'Amount is required' })
+                .min(0.2, { message: "Amount must be at least 20 SEK" }),
+            isRecurring: z.boolean(),
+        }))
+    }).optional().nullable(),
+
 }).superRefine((data, ctx) => {
     if (!data.isCompany) {
         if (!data.firstname || data.firstname.length < 2) {

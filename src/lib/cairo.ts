@@ -1,5 +1,5 @@
 import { cairoAuthHeader } from "@/utils/cairoAuthUtils";
-import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustomer, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoPortfolioCreationPayload, CairoPortfolioCreationResponse, CairoResponseCollection, CairoHttpResponse, CairoAccount, CairoCustomerContact, CairoSubscription, CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse, CairoPortalUser } from "./cairo.type";
+import { CairoAccountCreationPayload, CairoAccountCreationResponse, CairoCustomer, CairoCustomerCreationPayload, CairoCustomerCreationResponse, CairoPortfolioCreationPayload, CairoPortfolioCreationResponse, CairoResponseCollection, CairoHttpResponse, CairoAccount, CairoCustomerContact, CairoSubscription, CairoSubscriptionCreationPayload, CairoSubscriptionCreationResponse, CairoPortalUser, CairoExternalBankAccount, CairoExternalBankAccountCreationPayload, CairoExternalBankAccountCreationResponse, CairoMandateCreationPayload, CairoMandate, CairoInstructionCreationPayload, CairoInstructionCreationResponse } from "./cairo.type";
 
 
 
@@ -36,8 +36,10 @@ async function makeRequest<T>(
       }
     }
 
+    const status = response.ok ? "success" : response.status === 409 ? "conflict" : "error";
+
     return {
-      status: response.ok ? "success" : "failed",
+      status: status,
       statusCode: response.status,
       requestTime: duration,
       body: responseBody, // Always store raw response
@@ -181,4 +183,46 @@ export async function createPortfolio(portfolioCreationPayload: CairoPortfolioCr
   }
 
   return result
+}
+
+export async function fetchExternalBankAccountByCustomerCode(customerCode: string, signal: AbortSignal) {
+  return makeRequest<CairoResponseCollection<CairoExternalBankAccount>>(`/payment/externalbankaccounts/?customerCode=${customerCode}`, { signal });
+}
+
+export async function fetchExternalBankAccountByDetails(customerCode: string, accountNumber: string, clearingnumber: string, signal: AbortSignal) {
+  return makeRequest<CairoResponseCollection<CairoExternalBankAccount>>(`/payment/externalbankaccounts/?customerCode=${customerCode}&accountNumber=${accountNumber}&clearingNumber=${clearingnumber}&_fields=+mandates`, { signal });
+}
+
+export async function createExternalBankAccount(externalBankAccountPayload: CairoExternalBankAccountCreationPayload, signal: AbortSignal) {
+  return makeRequest<CairoExternalBankAccountCreationResponse>(`/payment/externalbankaccounts`,
+    {
+      method: "POST",
+      body: JSON.stringify(externalBankAccountPayload),
+      signal
+    }
+  );
+}
+
+export async function createMandate(mandatePayload: CairoMandateCreationPayload, signal: AbortSignal) {
+  return makeRequest<null>(`/payment/mandates`,
+    {
+      method: "POST",
+      body: JSON.stringify(mandatePayload),
+      signal
+    }
+  );
+}
+
+export async function fetchMandateByExternalBankAccountCode(externalBankAccountCode: string, signal: AbortSignal) {
+  return makeRequest<CairoResponseCollection<CairoMandate>>(`/payment/mandates/?externalBankAccountCode=${externalBankAccountCode}`, { signal });
+}
+
+export async function createPaymentInstruction(instructionPayload: CairoInstructionCreationPayload, signal: AbortSignal) {
+  return makeRequest<CairoInstructionCreationResponse>(`/payment/instructions`,
+    {
+      method: "POST",
+      body: JSON.stringify(instructionPayload),
+      signal
+    }
+  );
 }

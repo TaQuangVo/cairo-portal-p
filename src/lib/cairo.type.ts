@@ -1,5 +1,5 @@
 export type CairoHttpResponse<T> = {
-    status: "success" | "error" | "failed" | 'aborted';
+    status: "success" | "conflict" | "error" | "failed" | 'aborted';
     statusCode?: number;
     requestTime?: number;
     body?: string;
@@ -175,3 +175,80 @@ export type CairoSubscriptionCreationPayload = Required<Pick<CairoSubscription,
     Partial<Pick<CairoSubscription, 'toDate'>>;
 
 export type CairoSubscriptionCreationResponse = Required<Pick<CairoSubscription, 'subscriptionId'>>;
+
+
+export interface CairoExternalBankAccount {
+    externalBankAccountCode: string
+    customerCode: string
+    customerDescription: string
+    externalBankAccountTypeCode: string
+    primaryExternalBankAccount: boolean
+    externalBankAccountStatusCode: string
+    clearingNumber: string
+    accountNumber: string
+    iban: any
+    validateDate: any
+    validateStatusComment: any
+    updateDate: string
+    mandates?: CairoMandate[]
+}
+
+export type CairoExternalBankAccountCreationPayload = Required<Pick<CairoExternalBankAccount, 'externalBankAccountCode' | 'customerCode' | 'externalBankAccountTypeCode' | 'clearingNumber' | 'accountNumber'>>
+
+export type CairoExternalBankAccountCreationResponse = Required<Pick<CairoExternalBankAccount, 'externalBankAccountCode'>>  
+
+export interface CairoMandate {
+    mandateCode: string
+    externalBankAccountCode: string
+    payerNumberTypeCode: string
+    mandateStatusCode: 'ACTIVATED' | 'CREATED' | 'CANCELLED' | 'REJECTEDACTIVATED'
+    mandateStatusDate: string
+    mandateStatusComment: string
+    updateDate: string
+}
+
+export type CairoMandateCreationPayload = Required<Pick<CairoMandate, 'mandateCode' | 'externalBankAccountCode' | 'payerNumberTypeCode'>>
+
+export interface Allocation {
+    allocationId: number
+    instructionCode: string
+    portfolioCode: string
+    portfolioDescription: string
+    accountCode: string
+    accountDescription: string
+    weight: number
+    useModel: boolean
+    instrumentCode: any
+    instrumentDescription: any
+    instrumentTypeCode: any
+    instrumentClassCode: any
+    isin: any
+    updateDate: string
+}
+
+export type CairoAllocationCreationPayload = Required<Pick<Allocation, 'portfolioCode' | 'accountCode' | 'weight'>>
+
+export interface CairoInstruction {
+    instructionCode: string
+    instructionDescription: string
+    mandateCode: string
+    mandateDescription: string
+    customerCode: string
+    customerDescription: string
+    amount: number
+    debitDate: string
+    frequencyCode: string
+    noOfDebitsAllowed: number
+    instructionStatusCode: string
+    instructionStatusDate: string
+    instructionStatusComment: string
+    paymentStatusCode: string
+    paymentStatusDate: string
+    nextPaymentDate: any
+    updateDate: string
+    allocations: Allocation[]
+}
+
+export type CairoInstructionCreationPayload = Required<Pick<CairoInstruction, 'instructionCode' | 'mandateCode' | 'amount' | 'debitDate' | 'frequencyCode'>>  & Partial<Pick<CairoInstruction, 'noOfDebitsAllowed'> & {allocations: CairoAllocationCreationPayload[]}>
+
+export type CairoInstructionCreationResponse = Required<Pick<CairoInstruction, 'instructionCode'>>
