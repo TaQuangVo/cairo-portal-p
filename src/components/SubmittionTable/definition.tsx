@@ -90,7 +90,7 @@ export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
       accessorFn: (row) => row.createdAt,
       cell: ({ row }) => {
         return (
-          <p>{(row.getValue("createdAt") as Date).toLocaleString()}</p>
+          <p>{new Date(row.getValue("createdAt")).toLocaleString()}</p>
         )
       },
       id: "createdAt",

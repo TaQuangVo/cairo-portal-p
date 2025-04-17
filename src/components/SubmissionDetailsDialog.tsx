@@ -54,7 +54,7 @@ export const SubmissionDetailsDialog = ({ viewingSubmittion, onJsonViewChange }:
         </div>
         <div className="text-sm pt-4">
           <div className="font-medium">Created date:</div>
-          {viewingSubmittion.createdAt.toLocaleDateString('sv-SE')} ({viewingSubmittion.createdAt.toLocaleTimeString('sv-SE')})
+          {new Date(viewingSubmittion.createdAt).toLocaleDateString('sv-SE')} ({new Date(viewingSubmittion.createdAt).toLocaleTimeString('sv-SE')})
         </div>
         <div className="flex items-end w-full space-x-2 pb-4 mt-6">
           <div className="flex flex-1 gap-2 flex-col">
