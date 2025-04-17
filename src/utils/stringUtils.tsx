@@ -153,3 +153,8 @@ export function formatDecimals(num:number, length:number):number {
   }
   return num;
 }
+
+export function camelToNormalCase(text: string): string {
+  const result = text.replace(/([A-Z])/g, ' $1').toLocaleLowerCase(); // Insert space before capital letters
+  return result.charAt(0).toUpperCase() + result.slice(1); // Capitalize the first letter
+}

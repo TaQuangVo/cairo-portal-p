@@ -354,7 +354,12 @@ export function NewPortfolioForm() {
                                             }
                                         })} />
                                 </FormControl>
-                                <span className="text-xs text-end text-gray-600">Fill in Personal number to continues*</span>
+                                {
+                                    isCompany ?
+                                    <span className="text-xs text-end text-gray-600">Fill in organization number to continues*</span>
+                                    :
+                                    <span className="text-xs text-end text-gray-600">Fill in social security number to continues*</span>
+                                }
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -705,13 +710,16 @@ export function NewPortfolioForm() {
                                                                                 render={({ field }) => (
                                                                                     <FormItem className="flex-1/2">
                                                                                         <FormControl>
-                                                                                            <Input placeholder="Amount" type="number"
-                                                                                                {...field}
-                                                                                                onChange={(e) => {
-                                                                                                    const val = e.target.valueAsNumber;
-                                                                                                    field.onChange(Number.isNaN(val) ? '' : val);
-                                                                                                }}
-                                                                                            />
+                                                                                            <div className="relative">
+                                                                                                <Input placeholder="Amount" type="number"
+                                                                                                    {...field}
+                                                                                                    onChange={(e) => {
+                                                                                                        const val = e.target.valueAsNumber;
+                                                                                                        field.onChange(Number.isNaN(val) ? '' : val);
+                                                                                                    }}
+                                                                                                />
+                                                                                                <span className="absolute right-0 top-1/2 -translate-y-1/2 mr-2">SEK</span>
+                                                                                            </div>
                                                                                         </FormControl>
                                                                                         <FormMessage />
                                                                                     </FormItem>
