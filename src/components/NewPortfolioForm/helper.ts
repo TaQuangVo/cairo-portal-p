@@ -34,6 +34,20 @@ export const formDefaultValues = {
 
 }
 
+const customerDetailsSchema = z.object({
+    firstname: z.string().min(2, "Firstname must be at least 2 characters."),
+    surname: z.string().min(2, "Surname must be at least 2 characters."),
+    personalNumber: z.string().refine((value) => {
+        return /^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(value)
+    }, { message: "Social security number must contain only digits and possibly one dash(-)." }),
+    address: z.string().min(5, "Address must be at least 5 characters."),
+    address2: z.string().optional().nullable(),
+    postalCode: z.string().min(4, "Postal code must be at least 4 characters."),
+    city: z.string().min(2, "City must be at least 2 characters."),
+    mobile: z.string().min(8, "Mobile number must be at least 8 characters.").or(z.literal("")).optional().nullable(),
+    emailAddress: z.string().email("Invalid email format.").or(z.literal("")).optional().nullable(),
+})
+
 export const userPortfolioSchema = z.object({
     isCompany: z.boolean(),
 

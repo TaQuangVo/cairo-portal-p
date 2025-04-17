@@ -43,6 +43,7 @@ export function NewPortfolioForm() {
     const [submittionError, setSubmittionError] = useState<any | null>(null)
     const [addReprecentive, setAddReprecentive] = useState(false)
     const [addPayment, setAddPayment] = useState(false)
+    const [showForm, setShowForm] = useState(false)
     const form = useForm<UserPortfolioFormValues>({
         resolver: zodResolver(userPortfolioSchema),
         defaultValues: formDefaultValues,
@@ -174,25 +175,28 @@ export function NewPortfolioForm() {
             form.trigger('address')
             form.trigger('postalCode')
             form.trigger('city')
+            setShowForm(true)
 
         } else if (response.status === 404) {
             form.setError('personalNumber', {
                 type: 'custom',
                 message: 'Person not exist, check for correct social security number'
             })
+            setShowForm(false)
         } else if (response.status === 400) {
             const res = await response.json();
             form.setError('personalNumber', {
                 type: 'custom',
                 message: res.messages
             })
+            setShowForm(false)
         } else {
             toast('Failed to fetch personal information.')
             form.setError('personalNumber', {
                 type: 'custom',
                 message: 'Cannot get person infomation, try again later.'
             })
-
+            setShowForm(false)
         }
     }
 
@@ -221,23 +225,27 @@ export function NewPortfolioForm() {
             form.trigger('reprecenterAddress2')
             form.trigger('reprecenterAddress')
             form.trigger('reprecenterCity')
+            setShowForm(true)
         } else if (response.status === 400) {
             const res = await response.json();
             form.setError('reprecenterPersonalNumber', {
                 type: 'custom',
                 message: res.messages
             })
+            setShowForm(false)
         } else if (response.status === 404) {
             form.setError('reprecenterPersonalNumber', {
                 type: 'custom',
                 message: 'Person not exist, check for correct social security number'
             })
+            setShowForm(false)
         } else {
             toast('Failed to fetch personal information.')
             form.setError('personalNumber', {
                 type: 'custom',
                 message: 'Cannot get person infomation, try again later.'
             })
+            setShowForm(false)
         }
     }
 
@@ -300,301 +308,286 @@ export function NewPortfolioForm() {
         <>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
+                    <div className="w-full rounded-md border p-3 lg:p-4 bg-background">
+                        <FormField
+                            control={form.control}
+                            name="isCompany"
+                            render={({ field }) => (
+                                <FormItem >
+                                    <FormControl>
+                                        <Tabs value={field.value ? 'company' : 'private'} className=" lg:w-[400px] mx-auto " onValueChange={(value: string) => {
+                                            //field.onChange(value === 'company')
+                                            form.reset({ ...formDefaultValues, portfolioTypeCode: undefined, isCompany: value === 'company' })
+                                            setShowForm(false)
+                                        }}>
+                                            <TabsList className="grid w-full grid-cols-2">
+                                                <TabsTrigger value="private">Private Person</TabsTrigger>
+                                                <TabsTrigger value="company">Organization</TabsTrigger>
+                                            </TabsList>
+                                        </Tabs>
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
 
-                    <FormField
-                        control={form.control}
-                        name="isCompany"
-                        render={({ field }) => (
-                            <FormItem >
+                        <div className="text-sm mb-9">
+                            <p className="font-semibold">Create a new account for a {isCompany ? 'company' : 'private person'}.</p>
+                            <p>(If the customer does not already exist, one will be created automatically before the account is added)</p>
+                        </div>
+
+                        <FormField control={form.control} name="personalNumber" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
                                 <FormControl>
-                                    <Tabs value={field.value ? 'company' : 'private'} className=" lg:w-[400px] mx-auto " onValueChange={(value: string) => {
-                                        //field.onChange(value === 'company')
-                                        form.reset({ ...formDefaultValues, portfolioTypeCode: undefined, isCompany: value === 'company' })
-                                    }}>
-                                        <TabsList className="grid w-full grid-cols-2">
-                                            <TabsTrigger value="private">Private Person</TabsTrigger>
-                                            <TabsTrigger value="company">Organization</TabsTrigger>
-                                        </TabsList>
-                                    </Tabs>
+                                    <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field}
+                                        disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'}
+                                        onBlur={(e => {
+                                            const value = e.target.value
+                                            try {
+                                                const formatedValue = isCompany ? convertOrgNumber(value) : convertPersonalNumber(value)
+                                                form.setValue('personalNumber', formatedValue)
+                                                !isCompany && prefillPersonalInfo(formatedValue)
+                                                isCompany && prefillCompanyInfo(formatedValue)
+                                            } catch (e) {
+                                                form.setError('personalNumber', {
+                                                    type: 'custom',
+                                                    message: (e as Error).message
+                                                })
+                                                setShowForm(false)
+                                            }
+                                        })} />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
-                        )}
-                    />
-
-                    <div className="text-sm mb-9">
-                        <p className="font-semibold">Create a new account for a {isCompany ? 'company' : 'private person'}.</p>
-                        <p>(If the customer does not already exist, one will be created automatically before the account is added)</p>
+                        )} />
                     </div>
 
-                    <FormField control={form.control} name="personalNumber" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>{isCompany ? "Organization number*" : "Social Security number*"}</FormLabel>
-                            <FormControl>
-                                <Input placeholder={isCompany ? "Enter organization number" : "Enter social security number"} {...field}
-                                    disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'}
-                                    onBlur={(e => {
-                                        const value = e.target.value
-                                        try {
-                                            const formatedValue = isCompany ? convertOrgNumber(value) : convertPersonalNumber(value)
-                                            form.setValue('personalNumber', formatedValue)
-                                            !isCompany && prefillPersonalInfo(formatedValue)
-                                            isCompany && prefillCompanyInfo(formatedValue)
-                                        } catch (e) {
-                                            form.setError('personalNumber', {
-                                                type: 'custom',
-                                                message: (e as Error).message
-                                            })
-                                        }
-                                    })} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <Separator />
-
-                    <span className="flex gap-6">
-                        {!isCompany &&
-                            <FormField
-                                control={form.control}
-                                name="firstname"
-                                render={({ field }) => (
-                                    <FormItem className="flex-1/2">
-                                        <FormLabel>First Name*</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Enter first name" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer'} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        }
-                        <FormField control={form.control} name="surname" render={({ field }) => (
-                            <FormItem className="flex-1/2">
-                                <FormLabel>{isCompany ? "Company Name*" : "Surname*"}</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Enter surname" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                    </span>
-                    <div className="flex gap-6  flex-col lg:flex-row">
-                        <FormField control={form.control} name="address" render={({ field }) => (
-                            <FormItem className="flex-1/2">
-                                <FormLabel>Address*</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Enter address" {...field} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        <div className="flex gap-6">
-                            <FormField control={form.control} name="postalCode" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Postal Code*</FormLabel>
+                    <Accordion type="single" collapsible className="w-full" value={showForm ? 'form' : ''}>
+                                        <AccordionItem value="form">
+                                            <AccordionContent className="space-y-6 mt-6">
+                    <>
+                    <h3 className="text-lg font-semibold">Contact Information</h3>
+                    <div className="w-full rounded-md border p-3 lg:px-4 lg:py-6 space-y-6 mt-4">
+                        <span className="flex gap-6">
+                            {!isCompany &&
+                                <FormField
+                                    control={form.control}
+                                    name="firstname"
+                                    render={({ field }) => (
+                                        <FormItem className="flex-1/2">
+                                            <FormLabel>First Name*</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter first name" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer'} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            }
+                            <FormField control={form.control} name="surname" render={({ field }) => (
+                                <FormItem className="flex-1/2">
+                                    <FormLabel>{isCompany ? "Company Name*" : "Surname*"}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter postal code" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'} />
+                                        <Input placeholder="Enter surname" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
-                            <FormField control={form.control} name="city" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>City*</FormLabel>
+                        </span>
+                        <div className="flex gap-6  flex-col lg:flex-row">
+                            <FormField control={form.control} name="address" render={({ field }) => (
+                                <FormItem className="flex-1/2">
+                                    <FormLabel>Address*</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter city" {...field} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'} />
+                                        <Input placeholder="Enter address" {...field} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            <div className="flex gap-6">
+                                <FormField control={form.control} name="postalCode" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Postal Code*</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter postal code" {...field} value={field.value ?? ""} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <FormField control={form.control} name="city" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>City*</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter city" {...field} disabled={fetchingAutoFillValues === 'private customer' || fetchingAutoFillValues === 'company'} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            </div>
+                        </div>
+                        <div className="flex gap-6 flex-col lg:flex-row">
+                            <FormField control={form.control} name="mobile" render={({ field }) => (
+                                <FormItem className="flex-1/2">
+                                    <FormLabel>Mobile (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Enter mobile number" {...field} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            <FormField control={form.control} name="emailAddress" render={({ field }) => (
+                                <FormItem className="flex-1/2">
+                                    <FormLabel>Email (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Enter email" {...field} value={field.value ?? ""} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
                         </div>
                     </div>
-                    <div className="flex gap-6 flex-col lg:flex-row">
-                        <FormField control={form.control} name="mobile" render={({ field }) => (
-                            <FormItem className="flex-1/2">
-                                <FormLabel>Mobile (Optional)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Enter mobile number" {...field} value={field.value ?? ''} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="emailAddress" render={({ field }) => (
-                            <FormItem className="flex-1/2">
-                                <FormLabel>Email (Optional)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Enter email" {...field} value={field.value ?? ""} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                    </div>
 
                     {isCompany && (
-                        <span>
-                            <Separator />
-                            <div className="flex items-center gap-2 mt-4 mb-6">
-                                <Checkbox
-                                    id="add-representative"
-                                    checked={addReprecentive}
-                                    onCheckedChange={(checked) =>
-                                        onAddReprecenterChange(checked ? 'item-1' : '')
-                                    }
-                                />
-                                <label htmlFor="add-representative" className="text-sm font-medium">
-                                    Include representative (optional)
-                                </label>
-                            </div>
-                            <Accordion type="single" collapsible className="w-full" value={addReprecentive ? 'item-1' : ''} onValueChange={(value) => onAddReprecenterChange(value)}>
-                                <AccordionItem value="item-1">
-                                    <AccordionContent className="space-y-6">
+                        <>
+                            <h3 className="text-lg font-semibold">Representive</h3>
+                            <div className="w-full rounded-md border p-3 lg:p-4 space-y-6 mt-4">
+                                <span>
+                                    <div className="flex items-center gap-2 ">
+                                        <Checkbox
+                                            id="add-representative"
+                                            checked={addReprecentive}
+                                            onCheckedChange={(checked) =>
+                                                onAddReprecenterChange(checked ? 'item-1' : '')
+                                            }
+                                        />
+                                        <label htmlFor="add-representative" className="text-sm font-medium">
+                                            Include representative (optional)
+                                        </label>
+                                    </div>
+                                    <Accordion type="single" collapsible className="w-full" value={addReprecentive ? 'item-1' : ''} onValueChange={(value) => onAddReprecenterChange(value)}>
+                                        <AccordionItem value="item-1">
+                                            <AccordionContent className="space-y-6 mt-6">
 
-                                        <FormField control={form.control} name="reprecenterPersonalNumber" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Social security number*</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Social security number" {...field} value={field.value ?? ''}
-                                                        disabled={fetchingAutoFillValues === 'reprecentive'}
-                                                        onBlur={(e => {
-                                                            const value = e.target.value
-                                                            try {
-                                                                const formatedValue = convertPersonalNumber(value)
-                                                                form.setValue('reprecenterPersonalNumber', formatedValue)
-                                                                prefillRepresentativeInfo(formatedValue)
-                                                            } catch (e) {
-                                                                form.setError('reprecenterPersonalNumber', {
-                                                                    type: 'custom',
-                                                                    message: (e as Error).message
-                                                                })
-                                                            }
-                                                        })} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                        <div className="flex gap-6">
-                                            <FormField control={form.control} name="reprecenterFirstname" render={({ field }) => (
-                                                <FormItem className="flex-1/2">
-                                                    <FormLabel>Firstname*</FormLabel>
-                                                    <FormControl>
-                                                        <Input placeholder="Firstname" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                            <FormField control={form.control} name="reprecenterSurname" render={({ field }) => (
-                                                <FormItem className="flex-1/2">
-                                                    <FormLabel>Surname*</FormLabel>
-                                                    <FormControl>
-                                                        <Input placeholder="Surename" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                        </div>
-                                        <div className="flex gap-6 flex-col lg:flex-row">
-                                            <FormField control={form.control} name="reprecenterAddress" render={({ field }) => (
-                                                <FormItem className="flex-1/2">
-                                                    <FormLabel>Adress*</FormLabel>
-                                                    <FormControl>
-                                                        <Input placeholder="Adress" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                            <div className="flex">
-                                                <FormField control={form.control} name="reprecenterPostalCode" render={({ field }) => (
+                                                <FormField control={form.control} name="reprecenterPersonalNumber" render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Portal code*</FormLabel>
+                                                        <FormLabel>Social security number*</FormLabel>
                                                         <FormControl>
-                                                            <Input placeholder="Portal code" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
+                                                            <Input placeholder="Social security number" {...field} value={field.value ?? ''}
+                                                                disabled={fetchingAutoFillValues === 'reprecentive'}
+                                                                onBlur={(e => {
+                                                                    const value = e.target.value
+                                                                    try {
+                                                                        const formatedValue = convertPersonalNumber(value)
+                                                                        form.setValue('reprecenterPersonalNumber', formatedValue)
+                                                                        prefillRepresentativeInfo(formatedValue)
+                                                                    } catch (e) {
+                                                                        form.setError('reprecenterPersonalNumber', {
+                                                                            type: 'custom',
+                                                                            message: (e as Error).message
+                                                                        })
+                                                                    }
+                                                                })} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )} />
-                                                <FormField control={form.control} name="reprecenterCity" render={({ field }) => (
-                                                    <FormItem className="ml-5">
-                                                        <FormLabel>City*</FormLabel>
-                                                        <FormControl>
-                                                            <Input placeholder="City" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )} />
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-6 flex-col lg:flex-row">
-                                            <FormField control={form.control} name="reprecenterMobile" render={({ field }) => (
-                                                <FormItem className="flex-1/2">
-                                                    <FormLabel>Mobile (Optional)</FormLabel>
-                                                    <FormControl>
-                                                        <Input placeholder="Mobile" {...field} value={field.value ?? ''} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                            <FormField control={form.control} name="reprecenterEmailAddress" render={({ field }) => (
-                                                <FormItem className="flex-1/2">
-                                                    <FormLabel>Email (Optional)</FormLabel>
-                                                    <FormControl>
-                                                        <Input placeholder="Email" {...field} value={field.value ?? ''} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-                        </span>
+                                                <div className="flex gap-6">
+                                                    <FormField control={form.control} name="reprecenterFirstname" render={({ field }) => (
+                                                        <FormItem className="flex-1/2">
+                                                            <FormLabel>Firstname*</FormLabel>
+                                                            <FormControl>
+                                                                <Input placeholder="Firstname" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField control={form.control} name="reprecenterSurname" render={({ field }) => (
+                                                        <FormItem className="flex-1/2">
+                                                            <FormLabel>Surname*</FormLabel>
+                                                            <FormControl>
+                                                                <Input placeholder="Surename" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                </div>
+                                                <div className="flex gap-6 flex-col lg:flex-row">
+                                                    <FormField control={form.control} name="reprecenterAddress" render={({ field }) => (
+                                                        <FormItem className="flex-1/2">
+                                                            <FormLabel>Adress*</FormLabel>
+                                                            <FormControl>
+                                                                <Input placeholder="Adress" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                    <div className="flex">
+                                                        <FormField control={form.control} name="reprecenterPostalCode" render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Portal code*</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="Portal code" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                        <FormField control={form.control} name="reprecenterCity" render={({ field }) => (
+                                                            <FormItem className="ml-5">
+                                                                <FormLabel>City*</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="City" {...field} value={field.value ?? ''} disabled={fetchingAutoFillValues === 'reprecentive'} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-6 flex-col lg:flex-row">
+                                                    <FormField control={form.control} name="reprecenterMobile" render={({ field }) => (
+                                                        <FormItem className="flex-1/2">
+                                                            <FormLabel>Mobile (Optional)</FormLabel>
+                                                            <FormControl>
+                                                                <Input placeholder="Mobile" {...field} value={field.value ?? ''} />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField control={form.control} name="reprecenterEmailAddress" render={({ field }) => (
+                                                        <FormItem className="flex-1/2">
+                                                            <FormLabel>Email (Optional)</FormLabel>
+                                                            <FormControl>
+                                                                <Input placeholder="Email" {...field} value={field.value ?? ''} />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </span>
+                            </div>
+                        </>
                     )}
 
-                    <Separator />
-                    <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Account Type*</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select account type" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {
-                                        [...definedPortfolioType.entries()].map(([key, value]) => {
-                                            if (isCompany && value.id === 'ISK') {
-                                                return null
-                                            }
-                                            return <SelectItem key={value.id} value={key}>{key}</SelectItem>
-                                        })
-                                    }
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <div className="flex gap-6">
-                        <FormField control={form.control} name="modelPortfolioCode" render={({ field }) => (
+                    <h3 className="text-lg font-semibold">Account deatails</h3>
+                    <div className="w-full rounded-md border p-3 lg:p-4 space-y-6 mt-4">
+                        <FormField control={form.control} name="portfolioTypeCode" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Account Model</FormLabel>
-                                <Select onValueChange={(value) => {
-                                    if (value === "__clear__") {
-                                        field.onChange("");
-                                    } else {
-                                        field.onChange(value);
-                                    }
-                                }}
-                                    value={field.value ?? ""}>
+                                <FormLabel>Account Type*</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value ? field.value : ""}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="No Model" />
+                                            <SelectValue placeholder="Select account type" />
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent className="max-h-70">
-                                        <SelectItem value="__clear__">No Model</SelectItem>
+                                    <SelectContent>
                                         {
-                                            [...modelPortfolioMap.entries()].map(([key, value]) => {
-                                                return <SelectItem key={value} value={key}>{key}</SelectItem>
+                                            [...definedPortfolioType.entries()].map(([key, value]) => {
+                                                if (isCompany && value.id === 'ISK') {
+                                                    return null
+                                                }
+                                                return <SelectItem key={value.id} value={key}>{key}</SelectItem>
                                             })
                                         }
                                     </SelectContent>
@@ -602,104 +595,135 @@ export function NewPortfolioForm() {
                                 <FormMessage />
                             </FormItem>
                         )} />
-                        <div className="flex">
-                            <FormField control={form.control} name="feeSubscription" render={({ field }) => (
+                        <div className="flex gap-6">
+                            <FormField control={form.control} name="modelPortfolioCode" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{accountModel !== '' ? 'Investeringsrådgivningsarvode*' : 'Diskretionärt förvaltningsarvode*'}</FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
-                                                const val = e.target.valueAsNumber;
-                                                field.onChange(Number.isNaN(val) ? undefined : formatDecimals(val, 2));
-                                            }} />
-                                            <Percent className="absolute right-0 top-1/2 -translate-y-1/2 mr-2" size={16} />
-                                        </div>
-                                    </FormControl>
+                                    <FormLabel>Account Model</FormLabel>
+                                    <Select onValueChange={(value) => {
+                                        if (value === "__clear__") {
+                                            field.onChange("");
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
+                                        value={field.value ?? ""}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="No Model" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent className="max-h-70">
+                                            <SelectItem value="__clear__">No Model</SelectItem>
+                                            {
+                                                [...modelPortfolioMap.entries()].map(([key, value]) => {
+                                                    return <SelectItem key={value} value={key}>{key}</SelectItem>
+                                                })
+                                            }
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )} />
+                            <div className="flex">
+                                <FormField control={form.control} name="feeSubscription" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{accountModel !== '' ? 'Investeringsrådgivningsarvode*' : 'Diskretionärt förvaltningsarvode*'}</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
+                                                    const val = e.target.valueAsNumber;
+                                                    field.onChange(Number.isNaN(val) ? undefined : formatDecimals(val, 2));
+                                                }} />
+                                                <Percent className="absolute right-0 top-1/2 -translate-y-1/2 mr-2" size={16} />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            </div>
                         </div>
                     </div>
-                    <span>
-                        <Separator />
-                        <div className="flex items-center gap-2 mt-4 mb-6">
-                            <Checkbox
-                                id="include-payment"
-                                checked={addPayment}
-                                onCheckedChange={(checked) =>
-                                    onAddPayment(checked ? 'content' : '')
-                                }
-                            />
-                            <label htmlFor="include-payment" className="text-sm font-medium">
-                                Include payment (optional)
-                            </label>
-                        </div>
-                        <Accordion type="single" collapsible className="w-full" value={addPayment ? 'content' : ''} onValueChange={(value) => onAddReprecenterChange(value)}>
-                            <AccordionItem value="content">
-                                <AccordionContent className="space-y-6">
-                                    <div className="flex gap-6 flex-row">
-                                        <FormField control={form.control} name="payment.accountNumber" render={({ field }) => (
-                                            <FormItem className="flex-3/4">
-                                                <FormLabel>Bank Account number*</FormLabel>
-                                                <FormControl>
-                                                    <div className="relative">
-                                                        <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
-                                                            const val = e.target.value
-                                                            field.onChange(val);
-                                                        }} />
-                                                    </div>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                        <FormField control={form.control} name="payment.clearingNumber" render={({ field }) => (
-                                            <FormItem className="flex-1/4">
-                                                <FormLabel>Clearing number*</FormLabel>
-                                                <FormControl>
-                                                    <div className="relative">
-                                                        <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
-                                                            const val = e.target.value
-                                                            field.onChange(val);
-                                                        }} />
-                                                    </div>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                    </div>
-                                    <div className=" flex flex-col gap-2 items-start">
-                                        <FormLabel>Initial deposits</FormLabel>
+                    <h3 className="text-lg font-semibold">Payment method</h3>
+                    <div className="w-full rounded-md border p-3 lg:p-4 space-y-6 mt-4">
+                        <span>
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="include-payment"
+                                    checked={addPayment}
+                                    onCheckedChange={(checked) =>
+                                        onAddPayment(checked ? 'content' : '')
+                                    }
+                                />
+                                <label htmlFor="include-payment" className="text-sm font-medium">
+                                    Include payment (optional)
+                                </label>
+                            </div>
+                            <Accordion type="single" collapsible className="w-full" value={addPayment ? 'content' : ''} onValueChange={(value) => onAddReprecenterChange(value)}>
+                                <AccordionItem value="content">
+                                    <AccordionContent className="space-y-6 mt-6">
+                                        <div className="flex gap-6 flex-row">
+                                            <FormField control={form.control} name="payment.accountNumber" render={({ field }) => (
+                                                <FormItem className="flex-3/4">
+                                                    <FormLabel>Bank Account number*</FormLabel>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
+                                                                const val = e.target.value
+                                                                field.onChange(val);
+                                                            }} />
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+                                            <FormField control={form.control} name="payment.clearingNumber" render={({ field }) => (
+                                                <FormItem className="flex-1/4">
+                                                    <FormLabel>Clearing number*</FormLabel>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
+                                                                const val = e.target.value
+                                                                field.onChange(val);
+                                                            }} />
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+                                        </div>
+                                        <div className=" flex flex-col gap-2 items-start">
+                                            <FormLabel>Initial deposits</FormLabel>
 
-                                        {deposits && deposits.map((field, index) => (
-                                            <div className="p-2 border border-gray-300 rounded-md w-full" key={index}>
-                                                <div key={index} className="flex items-center gap-2">
+                                            {deposits && deposits.map((field, index) => (
+                                                <div className="p-2 border border-gray-300 rounded-md w-full" key={index}>
+                                                    <div key={index} className="flex items-center gap-2">
+                                                        <FormField
+                                                            control={form.control}
+                                                            name={`payment.deposit.${index}.amount`}
+                                                            render={({ field }) => (
+                                                                <FormItem className="flex-1/2">
+                                                                    <FormControl>
+                                                                        <Input placeholder="Amount" type="number"
+                                                                            {...field}
+                                                                            onChange={(e) => {
+                                                                                const val = e.target.valueAsNumber;
+                                                                                field.onChange(Number.isNaN(val) ? '' : val);
+                                                                            }}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <Button type="button" variant="destructive" onClick={() => {
+                                                            const currVal = form.getValues("payment.deposit")
+                                                            const left = currVal.filter(e => e !== field)
+                                                            form.setValue('payment.deposit', left)
+                                                        }}>
+                                                            <Trash2 />
+                                                        </Button>
+                                                    </div>
                                                     <FormField
-                                                        control={form.control}
-                                                        name={`payment.deposit.${index}.amount`}
-                                                        render={({ field }) => (
-                                                            <FormItem className="flex-1/2">
-                                                                <FormControl>
-                                                                    <Input placeholder="Amount" type="number"
-                                                                        {...field}
-                                                                        onChange={(e) => {
-                                                                            const val = e.target.valueAsNumber;
-                                                                            field.onChange(Number.isNaN(val) ? '' : val);
-                                                                        }}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <Button type="button" variant="destructive" onClick={() => {
-                                                        const currVal = form.getValues("payment.deposit")
-                                                        const left = currVal.filter(e => e !== field)
-                                                        form.setValue('payment.deposit', left)
-                                                    }}>
-                                                        <Trash2 />
-                                                    </Button>
-                                                </div>
-                                                <FormField
                                                         control={form.control}
                                                         name={`payment.deposit.${index}.isRecurring`}
                                                         render={({ field }) => (
@@ -712,31 +736,32 @@ export function NewPortfolioForm() {
                                                             </FormItem>
                                                         )}
                                                     />
-                                            </div>
-                                        ))}
+                                                </div>
+                                            ))}
 
-                                        <Button
-                                            className=""
-                                            variant="outline"
-                                            type="button"
-                                            onClick={() => {
-                                                const currVal = form.getValues("payment.deposit")
-                                                currVal.push({
-                                                    amount: 0,
-                                                    isRecurring: true,
-                                                })
-                                                form.setValue('payment.deposit', currVal)
-                                            }}
-                                        >
-                                            <Plus />
-                                            Add deposit
-                                        </Button>
-                                    </div>
+                                            <Button
+                                                className=""
+                                                variant="outline"
+                                                type="button"
+                                                onClick={() => {
+                                                    const currVal = form.getValues("payment.deposit")
+                                                    currVal.push({
+                                                        amount: 0,
+                                                        isRecurring: true,
+                                                    })
+                                                    form.setValue('payment.deposit', currVal)
+                                                }}
+                                            >
+                                                <Plus />
+                                                Add deposit
+                                            </Button>
+                                        </div>
 
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
-                    </span>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        </span>
+                    </div>
 
 
                     <div className="flex flex-col items-end mt-20 mb-9">
@@ -749,6 +774,10 @@ export function NewPortfolioForm() {
                             <p className="text-sm mt-3">Fill in all required fields to continues!</p>
                         }
                     </div>
+                    </>
+                    </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
                 </form>
             </Form>
             <Dialog open={showSubmittionModule} onOpenChange={onCloseModule}>

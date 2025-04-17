@@ -1,8 +1,8 @@
-import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService";
 import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload, CairoSubscriptionCreationPayload } from "./cairo.type";
 import { ZodError } from "zod";
 import { RoaringCompanyOverviewRecords, RoaringPopulationRegisterRecord } from "./roaring.type";
 import { CustomerAccountPortfolioCreationPayload } from "@/app/api/submittions/v2/portfolios/helper";
+import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoServiceV2";
 
 export type DBUser = {
     _id: string

@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoService";
+import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoServiceV2";
 
 export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
   {
