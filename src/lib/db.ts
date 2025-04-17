@@ -3,7 +3,7 @@ import { DBCounter, DBPortfolioSubmittions, DBRoaringCompanyOverview, DBRoaringP
 
 const DB_NAME = "PeakAm";
 const USER_COLLECTION_NAME = "users";
-const SUBMITTION_COLLECTION_NAME = "submittions";
+const SUBMITTION_COLLECTION_NAME = "submittionsV2";
 const POPULATION_REGISTER_COLLECTION_NAME = "populationRegister";
 const COMPANY_OVERVIEW_COLLECTION_NAME = "companyOverview"
 const COUNTER_COLLECTION_NAME = "Counter";

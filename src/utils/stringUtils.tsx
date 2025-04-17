@@ -17,7 +17,7 @@ export function convertPersonalNumber(input: string | null | undefined): string 
 
     // Validate allowed characters (digits and max one dash)
     if (!/^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(trimmed)) {
-      throw new Error("Social security number must contain only digits and possibly one dash(-).");
+      throw new Error("Social security number must contain 10 or 12 digits and possibly one dash(-).");
     }
     
     let digitsOnly = trimmed.replace(/[^0-9]/g, '');
@@ -80,7 +80,7 @@ export function convertOrgNumber(input: string | null | undefined): string {
 
   // Validate allowed characters (digits and max one dash)
   if (!/^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(trimmed)) {
-    throw new Error("Organization number must contain only digits and possibly one dash(-).");
+    throw new Error("Organization number must contain 10 or 12 digits and possibly one dash(-).");
   }
   
   // Remove dash

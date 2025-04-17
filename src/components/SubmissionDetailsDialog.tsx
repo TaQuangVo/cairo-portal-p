@@ -17,11 +17,11 @@ export const SubmissionDetailsDialog = ({viewingSubmittion, onJsonViewChange}:{v
               <DialogTitle>
                 {
                   !viewingSubmittion.requestBody.isCompany &&
-                  viewingSubmittion.requestBody.firstname
-                } {viewingSubmittion.requestBody.surname}
+                  viewingSubmittion.requestBody.mainActor.firstname
+                } {viewingSubmittion.requestBody.mainActor.surname}
               </DialogTitle>
               <DialogDescription>
-                {viewingSubmittion.requestBody.personalNumber}
+                {viewingSubmittion.requestBody.mainActor.personalNumber}
               </DialogDescription>
             </DialogHeader>
 
@@ -46,7 +46,7 @@ export const SubmissionDetailsDialog = ({viewingSubmittion, onJsonViewChange}:{v
             </div>
             <div className="text-sm pt-4">
               <div className="font-medium">Account type: </div>
-              {viewingSubmittion.requestBody.portfolioTypeCode}, <span className="">({!viewingSubmittion.requestBody.modelPortfolioCode || viewingSubmittion.requestBody.modelPortfolioCode === '' ? 'Diskretionärt' : viewingSubmittion.requestBody.modelPortfolioCode})
+              {viewingSubmittion.requestBody.accountDetails.portfolioTypeCode}, <span className="">({!viewingSubmittion.requestBody.accountDetails.modelPortfolioCode || viewingSubmittion.requestBody.accountDetails.modelPortfolioCode === '' ? 'Diskretionärt' : viewingSubmittion.requestBody.accountDetails.modelPortfolioCode})
               </span>
             </div>
             <div className="flex items-end w-full space-x-2 pb-4 mt-6">
@@ -72,33 +72,33 @@ export const SubmissionDetailsDialog = ({viewingSubmittion, onJsonViewChange}:{v
                 <h3 className="text-md font-semibold pt-7">Form input</h3>
                 <pre className="p-4 text-sm bg-gray-100 rounded-md overflow-auto">
                   <span className="font-semibold">Company Name</span>: <br />
-                  {viewingSubmittion.requestBody.surname} <br /><br />
+                  {viewingSubmittion.requestBody.mainActor.surname} <br /><br />
                   <span className="font-semibold">Organization number</span>: <br />
-                  {viewingSubmittion.requestBody.personalNumber} <br /><br />
+                  {viewingSubmittion.requestBody.mainActor.personalNumber} <br /><br />
                   <span className="font-semibold">Address</span>: <br />
-                  {viewingSubmittion.requestBody.address}, {viewingSubmittion.requestBody.postalCode}, {viewingSubmittion.requestBody.city}
+                  {viewingSubmittion.requestBody.mainActor.address}, {viewingSubmittion.requestBody.mainActor.postalCode}, {viewingSubmittion.requestBody.mainActor.city}
                   {
-                    viewingSubmittion.requestBody.emailAddress !== '' && (
+                    viewingSubmittion.requestBody.mainActor.emailAddress !== '' && (
                       <><br /><br />
                         <span className="font-semibold">Email</span>: <br />
-                        {viewingSubmittion.requestBody.emailAddress}
+                        {viewingSubmittion.requestBody.mainActor.emailAddress}
                       </>
                     )
                   }
                   {
-                    viewingSubmittion.requestBody.mobile !== '' && (
+                    viewingSubmittion.requestBody.mainActor.mobile !== '' && (
                       <><br /><br />
                         <span className="font-semibold">Phone number</span>: <br />
-                        {viewingSubmittion.requestBody.mobile}
+                        {viewingSubmittion.requestBody.mainActor.mobile}
                       </>
                     )
                   }
                   <br /><br />
                   <span className="font-semibold">Account type</span>: <br />
-                  {viewingSubmittion.requestBody.portfolioTypeCode}, <span className="">({!viewingSubmittion.requestBody.modelPortfolioCode || viewingSubmittion.requestBody.modelPortfolioCode === '' ? 'Diskretionärt' : viewingSubmittion.requestBody.modelPortfolioCode})</span>
+                  {viewingSubmittion.requestBody.accountDetails.portfolioTypeCode}, <span className="">({!viewingSubmittion.requestBody.accountDetails.modelPortfolioCode || viewingSubmittion.requestBody.accountDetails.modelPortfolioCode === '' ? 'Diskretionärt' : viewingSubmittion.requestBody.accountDetails.modelPortfolioCode})</span>
                   <br /><br />
                   <span className="font-semibold">Arvode</span>: <br />
-                  {viewingSubmittion.requestBody.feeSubscription.toFixed(2)}
+                  {viewingSubmittion.requestBody.accountDetails.feeSubscription.toFixed(2)}
                 </pre>
                 </div>
               }
@@ -108,33 +108,33 @@ export const SubmissionDetailsDialog = ({viewingSubmittion, onJsonViewChange}:{v
                 <h3 className="text-md font-semibold pt-7">Form input</h3>
                 <pre className="p-4 text-sm bg-gray-100 rounded-md overflow-auto">
                   <span className="font-semibold">Customer name</span>: <br />
-                  {viewingSubmittion.requestBody.surname} {viewingSubmittion.requestBody.surname}<br /><br />
+                  {viewingSubmittion.requestBody.mainActor.surname} {viewingSubmittion.requestBody.mainActor.surname}<br /><br />
                   <span className="font-semibold">Personnummer</span>: <br />
-                  {viewingSubmittion.requestBody.personalNumber} <br /><br />
+                  {viewingSubmittion.requestBody.mainActor.personalNumber} <br /><br />
                   <span className="font-semibold">Address</span>: <br />
-                  {viewingSubmittion.requestBody.address}, {viewingSubmittion.requestBody.postalCode}, {viewingSubmittion.requestBody.city}
+                  {viewingSubmittion.requestBody.mainActor.address}, {viewingSubmittion.requestBody.mainActor.postalCode}, {viewingSubmittion.requestBody.mainActor.city}
                   {
-                    viewingSubmittion.requestBody.emailAddress !== '' && (
+                    viewingSubmittion.requestBody.mainActor.emailAddress !== '' && (
                       <><br /><br />
                         <span className="font-semibold">Email</span>: <br />
-                        {viewingSubmittion.requestBody.emailAddress}
+                        {viewingSubmittion.requestBody.mainActor.emailAddress}
                       </>
                     )
                   }
                   {
-                    viewingSubmittion.requestBody.mobile !== '' && (
+                    viewingSubmittion.requestBody.mainActor.mobile !== '' && (
                       <><br /><br />
                         <span className="font-semibold">Phone number</span>: <br />
-                        {viewingSubmittion.requestBody.mobile}
+                        {viewingSubmittion.requestBody.mainActor.mobile}
                       </>
                     )
                   }
                   <br /><br />
                   <span className="font-semibold">Account type</span>: <br />
-                  {viewingSubmittion.requestBody.portfolioTypeCode}, <span className="">({!viewingSubmittion.requestBody.modelPortfolioCode || viewingSubmittion.requestBody.modelPortfolioCode === '' ? 'Diskretionärt' : viewingSubmittion.requestBody.modelPortfolioCode})</span>
+                  {viewingSubmittion.requestBody.accountDetails.portfolioTypeCode}, <span className="">({!viewingSubmittion.requestBody.accountDetails.modelPortfolioCode || viewingSubmittion.requestBody.accountDetails.modelPortfolioCode === '' ? 'Diskretionärt' : viewingSubmittion.requestBody.accountDetails.modelPortfolioCode})</span>
                   <br /><br />
                   <span className="font-semibold">Arvode</span>: <br />
-                  {viewingSubmittion.requestBody.feeSubscription.toFixed(2)}
+                  {viewingSubmittion.requestBody.accountDetails.feeSubscription.toFixed(2)}
                 </pre>
                 </div>
               }

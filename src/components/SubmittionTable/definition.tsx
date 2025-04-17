@@ -8,13 +8,13 @@ import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cai
 export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
   {
     header: "Name",
-    accessorFn: (row) => row.requestBody?.firstname + ' ' + row.requestBody?.surname , // Accessing the nested surname and firstname
+    accessorFn: (row) => (row.requestBody.mainActor.firstname ?? '') + ' ' + row.requestBody.mainActor.surname , // Accessing the nested surname and firstname
     id: "Name" 
     ,
   },
     {
       header: "Personal Number",
-      accessorFn: (row) => row.requestBody?.personalNumber, // Accessing the nested personalNumber
+      accessorFn: (row) => row.requestBody.mainActor.personalNumber, // Accessing the nested personalNumber
       id: "personalNumber", // Explicitly set the id for the column
       cell(props ) {
         return (
@@ -35,37 +35,37 @@ export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
     },
     {
       header: "Address",
-      accessorFn: (row) => row.requestBody?.address,
+      accessorFn: (row) => row.requestBody.mainActor.address,
       id: "address",
     },
     {
       header: "Postal Code",
-      accessorFn: (row) => row.requestBody?.postalCode,
+      accessorFn: (row) => row.requestBody.mainActor.postalCode,
       id: "postalCode",
     },
     {
       header: "City",
-      accessorFn: (row) => row.requestBody?.city,
+      accessorFn: (row) => row.requestBody.mainActor.city,
       id: "city",
     },
     {
       header: "Mobile",
-      accessorFn: (row) => row.requestBody?.mobile,
+      accessorFn: (row) => row.requestBody.mainActor.mobile,
       id: "mobile",
     },
     {
       header: "Email Address",
-      accessorFn: (row) => row.requestBody?.emailAddress,
+      accessorFn: (row) => row.requestBody.mainActor.emailAddress,
       id: "emailAddress",
     },
     {
       header: "Account Type",
-      accessorFn: (row) => row.requestBody?.portfolioTypeCode,
+      accessorFn: (row) => row.requestBody.accountDetails.portfolioTypeCode,
       id: "portfolioTypeCode",
     },
     {
       header: "Account Model",
-      accessorFn: (row) => row.requestBody?.modelPortfolioCode,
+      accessorFn: (row) => row.requestBody.accountDetails.modelPortfolioCode,
       id: "modelPortfolioCode",
     },
     {

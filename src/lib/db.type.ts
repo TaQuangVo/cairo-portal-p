@@ -1,4 +1,4 @@
-import { CairoAccountCreationPayload, CairoCustomer, CairoCustomerCreationPayload, CairoPortfolioCreationPayload, CairoSubscriptionCreationPayload } from "./cairo.type";
+import { CairoCustomer } from "./cairo.type";
 import { ZodError } from "zod";
 import { RoaringCompanyOverviewRecords, RoaringPopulationRegisterRecord } from "./roaring.type";
 import { CustomerAccountPortfolioCreationPayload } from "@/app/api/submittions/v2/portfolios/helper";

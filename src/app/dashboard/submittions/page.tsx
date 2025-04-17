@@ -1,7 +1,7 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { PortfolioDataTable } from "@/components/SubmittionTable";
 import { authOptions } from "@/lib/auth";
-import { DBBasePortfolioSubmittions, DBPortfolioSubmittions } from "@/lib/db.type";
+import { DBPortfolioSubmittions } from "@/lib/db.type";
 import { getSubmittions } from "@/services/submittionService";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";

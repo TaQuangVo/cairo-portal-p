@@ -50,13 +50,11 @@ export type NewPortfolioResponse =
     | (BaseNewPortfolioResponse & {
         dataType: null;
         data: null;
-    });
+});
 
-export const customerAccountPortfolioCreationPayloadSchema = z.object({
-    isCompany: z.boolean(),
-
-    firstname: z.string(),
-    surname: z.string(),
+const customerDetailsSchema = z.object({
+    firstname: z.string().min(2, "Firstname must be at least 2 characters.").or(z.literal('')).optional().nullable(),
+    surname: z.string().min(2, "Surname must be at least 2 characters."),
     personalNumber: z.string().refine((value) => {
         return /^\d{10,12}$|^\d{8}-\d{4}|^\d{6}-\d{4}$/.test(value)
     }, { message: "Social security number must contain only digits and possibly one dash(-)." }),
@@ -66,17 +64,9 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
     city: z.string().min(2, "City must be at least 2 characters."),
     mobile: z.string().min(8, "Mobile number must be at least 8 characters.").or(z.literal("")).optional().nullable(),
     emailAddress: z.string().email("Invalid email format.").or(z.literal("")).optional().nullable(),
+})
 
-    reprecenterPersonalNumber: z.string().optional().nullable(),
-    reprecenterFirstname: z.string().optional().nullable(),
-    reprecenterSurname: z.string().optional().nullable(),
-    reprecenterAddress: z.string().optional().nullable(),
-    reprecenterAddress2: z.string().optional().nullable(),
-    reprecenterPostalCode: z.string().optional().nullable(),
-    reprecenterCity: z.string().optional().nullable(),
-    reprecenterMobile: z.string().optional().nullable(),
-    reprecenterEmailAddress: z.string().email("Invalid email format.").or(z.literal("")).optional().nullable(),
-
+const accountDetailsSchema = z.object({
     portfolioTypeCode: z.string().refine((value) => {
         return definedPortfolioType.get(value) != undefined;
     }, { message: "Invalid portfolio code." }),
@@ -86,119 +76,73 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
     modelPortfolioCode: z.string().refine((value) => {
         return modelPortfolioMap.get(value) != undefined;
     }, { message: "Invalid model portfolio code." }).or(z.literal('')).optional().nullable(),
+})
 
-    
-    payment: z.object({
-        clearingNumber: z.string().min(4, "Clearing number must be at least 4 digits."),
-        accountNumber: z.string().min(6, "Account number must be at least 6 digits."),
+const paymentDetailSchema = z.object({
+    clearingNumber: z.string().min(4, "Clearing number must be at least 4 digits."),
+    accountNumber: z.string().min(6, "Account number must be at least 6 digits."),
+    deposit: z.array(z.object({
+        amount: z.number({ message: 'Amount is required' })
+            .min(0.2, { message: "Amount must be at least 20 SEK" }),
+        isRecurring: z.boolean(),
+    }))
+})
 
-        deposit: z.array(z.object({
-            amount: z.number({ message: 'Amount is required' })
-                .min(0.2, { message: "Amount must be at least 20 SEK" }),
-            isRecurring: z.boolean(),
-        }))
-    }).optional().nullable(),
+export const customerAccountPortfolioCreationPayloadSchema = z.object({
+    isCompany: z.boolean(),
+
+    mainActor: customerDetailsSchema,
+    representor: customerDetailsSchema.optional().nullable(),
+
+    accountDetails: accountDetailsSchema,
+    payment: paymentDetailSchema.optional().nullable(),
 
 }).superRefine((data, ctx) => {
     if (!data.isCompany) {
-        if (!data.firstname || data.firstname.length < 2) {
+        if(!data.mainActor.firstname || data.mainActor.firstname.length < 2){
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                path: ["firstname"],
-                message: "Firstname must be at least 2 characters."
+                path: ["mainActor.firstname"],
+                message: 'Firstname must have atleast 2 charactors.'
             });
         }
-        if (!data.surname || data.surname.length < 2) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["surname"],
-                message: "Surname must be at least 2 characters."
-            });
-        }
-
         try {
-            convertPersonalNumber(data.personalNumber)
+            convertPersonalNumber(data.mainActor.personalNumber)
         } catch (error) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                path: ["personalNumber"],
+                path: ["mainActor.personalNumber"],
                 message: (error as Error).message
             });
         }
     }
     if (data.isCompany) {
-        if (!data.surname || data.surname.length < 2) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["surname"],
-                message: "Company name must be at least 2 characters."
-            });
-        }
-
         try {
-            convertOrgNumber(data.personalNumber)
+            convertOrgNumber(data.mainActor.personalNumber)
         } catch (e) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                path: ["personalNumber"],
+                path: ["mainActor.personalNumber"],
                 message: (e as Error).message
             });
         }
-
-        if (definedPortfolioType.get(data.portfolioTypeCode)?.id === 'ISK') {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["portfolioTypeCode"],
-                message: "Company accounts cannot be Investeringssparkonto accounts."
-            });
-        }
     }
-
-    if (data.isCompany && data.reprecenterPersonalNumber && data.reprecenterPersonalNumber !== ''){
+    if (data.isCompany && data.representor){
         try {
-            convertPersonalNumber(data.reprecenterPersonalNumber)
+            convertPersonalNumber(data.representor.personalNumber)
         } catch (error) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                path: ["personalNumber"],
+                path: ["representor.personalNumber"],
                 message: (error as Error).message
             });
             return
         }
-
-        if (!data.reprecenterFirstname || data.reprecenterFirstname.length < 2) {
+        if(!data.representor.firstname || data.representor.firstname.length < 2){
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                path: ["reprecenterFirstname"],
-                message: "Firstname must be at least 2 characters."
-            });
-        }
-        if (!data.reprecenterSurname || data.reprecenterSurname.length < 2) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["reprecenterSurname"],
-                message: "Surename must be at least 2 characters."
-            });
-        }
-        if (!data.reprecenterAddress || data.reprecenterAddress.length < 2) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["reprecenterAddress"],
-                message: "Address must be at least 2 characters."
-            });
-        }
-        if (!data.reprecenterPostalCode || data.reprecenterPostalCode.length < 4) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["reprecenterPostalCode"],
-                message: "Postal code must be at least 4 characters."
-            });
-        }
-        if (!data.reprecenterCity || data.reprecenterCity.length < 4) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["reprecenterPostalCode"],
-                message: "Postal code must be at least 4 characters."
+                path: ["representor.firstname"],
+                message: 'Firstname must have atleast 2 charactors.'
             });
         }
     }
@@ -219,7 +163,7 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
     const bankAccountCode = uuidv4();
     const mandateCode = randomizePayerCode().toString()
 
-    const formatedPersonalNumber = !payload.isCompany ? convertPersonalNumber(payload.personalNumber) : convertOrgNumber(payload.personalNumber)
+    const formatedPersonalNumber = !payload.isCompany ? convertPersonalNumber(payload.mainActor.personalNumber) : convertOrgNumber(payload.mainActor.personalNumber)
     const dateOfBirth = !payload.isCompany ? getBirthdateFromPersonNumber(formatedPersonalNumber) : ''
     const today = new Date().toISOString().split('T')[0]
     const managerCode = 'daniel.johansson'
@@ -231,18 +175,18 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
         throw new Error('Failed to get current portfolio count: ' + error)
     }
 
-    const portType = payload.portfolioTypeCode
+    const portType = payload.accountDetails.portfolioTypeCode
     const portfolioTypeData = definedPortfolioType.get(portType);
     const portfolioTypePrefix = portfolioTypeData?.prefix ?? 'U';
     const accountDescription = portfolioTypePrefix + currentCounter.toString()
     const portfolioDescription = portfolioTypePrefix + currentCounter.toString()
-    const modelPortfolioCode = payload.modelPortfolioCode && modelPortfolioMap.get(payload.modelPortfolioCode)
+    const modelPortfolioCode = payload.accountDetails.modelPortfolioCode && modelPortfolioMap.get(payload.accountDetails.modelPortfolioCode)
     const portfolioTypeCode = portfolioTypeData ? portfolioTypeData.id : '';
 
     const customerPayload: CairoCustomerCreationPayload = {
         customerCode: customerCode,
-        firstName: !payload.isCompany ? payload.firstname : '',
-        surName: payload.surname,
+        firstName: !payload.isCompany ? payload.mainActor.firstname! : '',
+        surName: payload.mainActor.surname,
         customerTypeCode: payload.isCompany ? 'COMPANY' : 'PRIVATE',
         dateOfBirth: dateOfBirth,
         regionCode: 'SE',
@@ -254,14 +198,14 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
         customerContacts: [
             {
                 customerCode: customerCode,
-                contactFirstName: payload.firstname,
-                contactSurName: payload.surname,
-                address: payload.address,
-                address2: payload.address2 ?? '',
-                postalCode: payload.postalCode,
-                city: payload.city,
-                mobile: payload.mobile ?? '',
-                emailAddress: payload.emailAddress ?? '',
+                contactFirstName: !payload.isCompany ? payload.mainActor.firstname! : '',
+                contactSurName: payload.mainActor.surname,
+                address: payload.mainActor.address,
+                address2: payload.mainActor.address2 ?? '',
+                postalCode: payload.mainActor.postalCode,
+                city: payload.mainActor.city,
+                mobile: payload.mainActor.mobile ?? '',
+                emailAddress: payload.mainActor.emailAddress ?? '',
             }
         ]
     }
@@ -293,18 +237,18 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
         performance: true,
         targetAccountCode: accountCode,
         discountTemplateCode: 'MFEX',
-        mifidDistributionStrategyCode: payload.modelPortfolioCode && payload.modelPortfolioCode !== '' ? 'PORTFOLIOMANAGEMENT' : 'INVESTMENTADVICE',
+        mifidDistributionStrategyCode: payload.accountDetails.modelPortfolioCode && payload.accountDetails.modelPortfolioCode !== '' ? 'PORTFOLIOMANAGEMENT' : 'INVESTMENTADVICE',
         portfolioAuthorities: [
             {
                 portfolioCode: portfolioCode,
                 reportingInputCode: "TypeOfMandate",
-                value: payload.modelPortfolioCode !== 'Diskmandat' ? '33' : '32'
+                value: payload.accountDetails.modelPortfolioCode !== 'Diskmandat' ? '33' : '32'
             }
         ]
     }
 
     const subscriptions: CairoSubscriptionCreationPayload[] = []
-    if(!payload.modelPortfolioCode || payload.modelPortfolioCode === ''){
+    if(!payload.accountDetails.modelPortfolioCode || payload.accountDetails.modelPortfolioCode === ''){
         subscriptions.push({
             subscriptionCode: 'PORTFOLIOFEE',
             portfolioCode: portfolioCode,
@@ -315,14 +259,14 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
             subscriptionCode: 'CONTRIBUTIONFEE',
             portfolioCode: portfolioCode,
             fromDate: today,
-            value: payload.feeSubscription * 0.8
+            value: payload.accountDetails.feeSubscription * 0.8
         })
     }else{
         subscriptions.push({
             subscriptionCode: 'PerformanceFeeYear',
             portfolioCode: portfolioCode,
             fromDate: today,
-            value: payload.feeSubscription * 0.8
+            value: payload.accountDetails.feeSubscription * 0.8
         })
     }
 
@@ -330,8 +274,8 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
         externalBankAccountCode: bankAccountCode,
         customerCode: customerCode, 
         externalBankAccountTypeCode:  "DEPOSIT_AND_WITHDRAWAL",
-        clearingNumber: payload.payment?.clearingNumber,
-        accountNumber: payload.payment?.accountNumber
+        clearingNumber: payload.payment.clearingNumber,
+        accountNumber: payload.payment.accountNumber
     }:null
 
     const mandatePayload: CairoMandateCreationPayload|null = payload.payment ? {
@@ -340,13 +284,13 @@ export async function payloadToRequestBodies(payload: CustomerAccountPortfolioCr
         payerNumberTypeCode: "MANDATECODE"
     }:null
 
-    const instructionPayload: CairoInstructionCreationPayload[] | null = payload?.payment ? payload.payment.deposit.map((d) => ({
+    const instructionPayload: CairoInstructionCreationPayload[] | null = payload.payment ? payload.payment.deposit.map((d) => ({
         mandateCode: mandateCode,
         instructionCode: uuidv4(),
         frequencyCode: d.isRecurring ? "MONTHLY" : "MONTHLY",
         amount: d.amount,
         debitDate: "2024-01-27",
-        noOfDebitsAllowed: d.isRecurring ? 1 : undefined,
+        noOfDebitsAllowed: d.isRecurring ? undefined : 1,
         allocations: [
             {
                 accountCode: accountCode,
