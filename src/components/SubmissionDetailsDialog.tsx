@@ -238,8 +238,6 @@ function CreationDetails({ viewingSubmittion: viewingData }: { viewingSubmittion
                   }
 
                   values = values as CairoExercutionResult<any, any>
-                  console.log(key, values)
-
 
                   const steps = Array.isArray(values) ? values : [values]
 

@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import { capitalize, convertOrgNumber, convertPersonalNumber, formatDecimals } from "@/utils/stringUtils"
 import {
     Dialog,
@@ -32,7 +31,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { formDefaultValues, UserPortfolioFormValues, userPortfolioSchema } from "./helper"
 import { Checkbox } from "../ui/checkbox"
 import { Switch } from "../ui/switch"
+const {account : validateBankAccount} = require('se-bank-account')
 
+type SwedishBankAccount = {
+    bank: string; 
+    clearing: string; 
+    number: string
+}
 
 export function NewPortfolioForm() {
     const searchParams = useSearchParams();
@@ -42,6 +47,7 @@ export function NewPortfolioForm() {
     const [submittionResult, setSubmittionResult] = useState<{ portfolioCode: string, portfolioType: string, modelPortfolio: string | null } | null>(null)
     const [submittionError, setSubmittionError] = useState<any | null>(null)
     const [showForm, setShowForm] = useState(false)
+    const [validatedBankAccount, setValidatedBankAccount] = useState<null | false | SwedishBankAccount>(null)
     const form = useForm<UserPortfolioFormValues>({
         resolver: zodResolver(userPortfolioSchema),
         defaultValues: formDefaultValues,
@@ -329,7 +335,11 @@ export function NewPortfolioForm() {
 
                         <div className="text-sm mb-9 mt-6">
                             <p className="font-semibold">Create a new account for a {isCompany ? 'company' : 'private person'}.</p>
-                            <p>(If the customer does not already exist, one will be created automatically before the account is added)</p>
+                            <ul className="list-disc list-inside text-gray-500">
+                                <li>Accounts are associated with a customer, who is uniquely identified based on their SSN.</li>
+                                <li>If the customer does not already exist, one will be created automatically before the account is added.</li>
+                                <li>If the customer already exists, they will <span className="font-semibold">not</span> be recreated, and their existing information will <span className="font-semibold">not</span> be updated.</li>
+                            </ul>
                         </div>
 
                         <FormField control={form.control} name="mainActor.personalNumber" render={({ field }) => (
@@ -397,7 +407,7 @@ export function NewPortfolioForm() {
                                                 </FormItem>
                                             )} />
                                         </span>
-                                        <div className="flex gap-6  flex-col lg:flex-row">
+                                        <div className="flex gap-6 flex-col lg:flex-row lg:items-start">
                                             <FormField control={form.control} name="mainActor.address" render={({ field }) => (
                                                 <FormItem className="flex-1/2">
                                                     <FormLabel>Address*</FormLabel>
@@ -406,8 +416,8 @@ export function NewPortfolioForm() {
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
-                                            )} />
-                                            <div className="flex gap-6">
+                                            )}/>
+                                            <div className="flex gap-6 items-start">
                                                 <FormField control={form.control} name="mainActor.postalCode" render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Postal Code*</FormLabel>
@@ -428,7 +438,7 @@ export function NewPortfolioForm() {
                                                 )} />
                                             </div>
                                         </div>
-                                        <div className="flex gap-6 flex-col lg:flex-row">
+                                        <div className="flex gap-6 flex-col lg:flex-row lg:items-start">
                                             <FormField control={form.control} name="mainActor.mobile" render={({ field }) => (
                                                 <FormItem className="flex-1/2">
                                                     <FormLabel>Mobile (Optional)</FormLabel>
@@ -494,7 +504,7 @@ export function NewPortfolioForm() {
                                                                         <FormMessage />
                                                                     </FormItem>
                                                                 )} />
-                                                                <div className="flex gap-6">
+                                                                <div className="flex gap-6 items-start">
                                                                     <FormField control={form.control} name="representor.firstname" render={({ field }) => (
                                                                         <FormItem className="flex-1/2">
                                                                             <FormLabel>Firstname*</FormLabel>
@@ -514,7 +524,7 @@ export function NewPortfolioForm() {
                                                                         </FormItem>
                                                                     )} />
                                                                 </div>
-                                                                <div className="flex gap-6 flex-col lg:flex-row">
+                                                                <div className="flex gap-6 flex-col lg:flex-row lg:items-start">
                                                                     <FormField control={form.control} name="representor.address" render={({ field }) => (
                                                                         <FormItem className="flex-1/2">
                                                                             <FormLabel>Adress*</FormLabel>
@@ -524,7 +534,7 @@ export function NewPortfolioForm() {
                                                                             <FormMessage />
                                                                         </FormItem>
                                                                     )} />
-                                                                    <div className="flex">
+                                                                    <div className="flex items-start">
                                                                         <FormField control={form.control} name="representor.postalCode" render={({ field }) => (
                                                                             <FormItem>
                                                                                 <FormLabel>Portal code*</FormLabel>
@@ -545,7 +555,7 @@ export function NewPortfolioForm() {
                                                                         )} />
                                                                     </div>
                                                                 </div>
-                                                                <div className="flex gap-6 flex-col lg:flex-row">
+                                                                <div className="flex gap-6 flex-col lg:flex-row lg:items-start">
                                                                     <FormField control={form.control} name="representor.mobile" render={({ field }) => (
                                                                         <FormItem className="flex-1/2">
                                                                             <FormLabel>Mobile (Optional)</FormLabel>
@@ -598,8 +608,8 @@ export function NewPortfolioForm() {
                                                     </Select>
                                                     <FormMessage />
                                                 </FormItem>
-                                            )} />
-                                            <div className="flex gap-6">
+                                            )}/>
+                                            <div className="flex gap-6 items-start">
                                                 <FormField control={form.control} name="accountDetails.modelPortfolioCode" render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Account Model</FormLabel>
@@ -668,7 +678,8 @@ export function NewPortfolioForm() {
                                                 <Accordion type="single" collapsible className="w-full" value={payment ? 'content' : ''}>
                                                     <AccordionItem value="content">
                                                         <AccordionContent className="space-y-6 mt-6">
-                                                            <div className="flex gap-6 flex-row">
+                                                            <div>
+                                                            <div className="flex gap-6 flex-row items-start">
                                                                 <FormField control={form.control} name="payment.accountNumber" render={({ field }) => (
                                                                     <FormItem className="flex-3/4">
                                                                         <FormLabel>Bank Account number*</FormLabel>
@@ -677,33 +688,66 @@ export function NewPortfolioForm() {
                                                                                 <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
                                                                                     const val = e.target.value
                                                                                     field.onChange(val);
-                                                                                }} />
+                                                                                }}                                                                                 
+                                                                                onBlur={(e)=>{
+                                                                                    form.trigger('payment.accountNumber')
+                                                                                    const accnum = form.getValues('payment.accountNumber')
+                                                                                    const clearing = form.getValues('payment.clearingNumber')
+                                                                                    if(accnum && clearing){
+                                                                                        const validated:false|SwedishBankAccount = validateBankAccount(clearing+'-'+accnum)
+                                                                                        setValidatedBankAccount(validated)
+                                                                                        form.trigger('payment.clearingNumber')
+                                                                                    }else{
+                                                                                        setValidatedBankAccount(null)
+                                                                                    }
+                                                                                }}/>
                                                                             </div>
                                                                         </FormControl>
                                                                         <FormMessage />
                                                                     </FormItem>
                                                                 )} />
                                                                 <FormField control={form.control} name="payment.clearingNumber" render={({ field }) => (
-                                                                    <FormItem className="flex-1/4">
+                                                                    <FormItem className="flex-2/4 lg:flex-1/4">
                                                                         <FormLabel>Clearing number*</FormLabel>
                                                                         <FormControl>
                                                                             <div className="relative">
                                                                                 <Input placeholder="Fee value" {...field} value={field.value ?? ''} type="number" onChange={(e) => {
                                                                                     const val = e.target.value
                                                                                     field.onChange(val);
-                                                                                }} />
+                                                                                }} 
+                                                                                onBlur={(e)=>{
+                                                                                    form.trigger('payment.clearingNumber')
+                                                                                    const accnum = form.getValues('payment.accountNumber')
+                                                                                    const clearing = form.getValues('payment.clearingNumber')
+                                                                                    if(accnum && clearing){
+                                                                                        const validated:false|SwedishBankAccount = validateBankAccount(clearing+'-'+accnum)
+                                                                                        setValidatedBankAccount(validated)
+                                                                                        form.trigger('payment.accountNumber')
+                                                                                    }else{
+                                                                                        setValidatedBankAccount(null)
+                                                                                    }
+                                                                                }}/>
                                                                             </div>
                                                                         </FormControl>
                                                                         <FormMessage />
                                                                     </FormItem>
                                                                 )} />
+                                                                </div>
+
+                                                            {
+                                                                validatedBankAccount === false  && !form.getFieldState('payment.accountNumber').invalid && !form.getFieldState('payment.clearingNumber').invalid
+                                                                ? <div className="text-red-600 pt-2">Invalid Swedish bankaccount number.</div> :
+                                                                validatedBankAccount
+                                                                ? <div className="mt-2">Bank name: <strong>{validatedBankAccount.bank}</strong></div> 
+                                                                : <span></span>
+                                                            }
                                                             </div>
                                                             <div className=" flex flex-col gap-2 items-start">
                                                                 <FormLabel>Initial deposits</FormLabel>
 
                                                                 {deposits && deposits.map((field, index) => (
                                                                     <div className="p-2 border border-gray-300 rounded-md w-full" key={index}>
-                                                                        <div key={index} className="flex items-center gap-2">
+                                                                        <div key={index} className="flex gap-2 items-start">
                                                                             <FormField
                                                                                 control={form.control}
                                                                                 name={`payment.deposit.${index}.amount`}

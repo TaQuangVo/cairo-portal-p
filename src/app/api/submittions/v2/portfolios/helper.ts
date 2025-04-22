@@ -6,6 +6,7 @@ import { getCurrentPortfolioCount } from "@/lib/db";
 import { definedPortfolioType } from "@/constant/portfolioType";
 import { modelPortfolioMap } from "@/constant/modelPortfolio";
 import { SequentialCustomerAccountPortfolioCreationResult } from "@/services/cairoServiceV2";
+const {account : validateBankAccount} = require('se-bank-account')
 
 export interface PortfolioCreationMessageBody {
         customer: CairoCustomerCreationPayload,
@@ -83,7 +84,7 @@ const paymentDetailSchema = z.object({
     accountNumber: z.string().min(6, "Account number must be at least 6 digits."),
     deposit: z.array(z.object({
         amount: z.number({ message: 'Amount is required' })
-            .min(0.2, { message: "Amount must be at least 20 SEK" }),
+            .min(20, { message: "Amount must be at least 20 SEK" }),
         isRecurring: z.boolean(),
     }))
 })
@@ -136,13 +137,27 @@ export const customerAccountPortfolioCreationPayloadSchema = z.object({
                 path: ["representor.personalNumber"],
                 message: (error as Error).message
             });
-            return
         }
         if(!data.representor.firstname || data.representor.firstname.length < 2){
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ["representor.firstname"],
                 message: 'Firstname must have atleast 2 charactors.'
+            });
+        }
+    }
+    if (data.payment){
+        const validatedBankAccount = validateBankAccount(data.payment.clearingNumber+'-'+data.payment.accountNumber)
+        if(validatedBankAccount === false){
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["payment.accountNumber"],
+                message: 'Invalid Swedish bankaccount number!.'
+            });
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["payment.clearingNumber"],
+                message: ''
             });
         }
     }

@@ -44,9 +44,6 @@ export const SessionRefresher = ({children}:{ children: ReactNode}) => {
         <>
             {children}
             <Dialog open={signOutWarning !== null} onOpenChange={onDialogClose}>
-                <DialogTrigger asChild>
-                    <Button variant="outline">Edit Profile</Button>
-                </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Are you still there</DialogTitle>
