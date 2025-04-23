@@ -52,7 +52,7 @@ export async function updateResponseToSubmission(
   }
   
 
-export async function getSubmittionById(submittionId: string): Promise<DBBasePortfolioSubmittions | null> {
+export async function getSubmittionById(submittionId: string): Promise<DBPortfolioSubmittions | null> {
     try {
         const submittionCol = await getSubmittionCollection();
         const submittion = await submittionCol.findOne({ _id: submittionId });

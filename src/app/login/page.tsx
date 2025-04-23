@@ -12,7 +12,7 @@ import {
     CardTitle,
   } from "@/components/ui/card"
 import BankIdLoginWithQrCodeComponent from "@/components/BankIdLoginWithQrCodeComponent";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from 'next/link';
 import { convertPersonalNumber } from '@/utils/stringUtils';
 import Image from 'next/image';
@@ -56,7 +56,7 @@ export default function InputWithButton() {
       }
       if (result === 'RETRY') {
         setError(message)
-        handleGetLoginSession()
+        handleGetLoginSession(null)
       }
       if (result === 'SUCCESS' && data) {
         setCurrentTransaction({
@@ -83,7 +83,10 @@ export default function InputWithButton() {
       setDisableButton(false)
   }
 
-    const handleGetLoginSession = async () => {
+    const handleGetLoginSession = async (e: FormEvent<HTMLFormElement>|null) => {
+      if(e){
+        e.preventDefault()
+      }
       setDisableButton(true)
 
       let verifiedSSN
@@ -149,20 +152,20 @@ export default function InputWithButton() {
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="socialSecurityNumber">Social security number</Label>
-              <div className="flex">
-                <Input id="socialSecurityNumber" type="text"  placeholder="xxxxxxxx-xxxx" value={ssn} onChange={e=>setSsn(e.currentTarget.value)} onBlur={(e => {
-                                  const value = e.target.value
-                                  try{
-                                      const formatedValue = convertPersonalNumber(value)
-                                      setSsn(formatedValue)
-                                  }catch(e){
-                                  }
-                              })}/>
-                <Button disabled={disableButon} onClick={handleGetLoginSession} className="ml-2">
-                  <Image src="/bankid-icon.svg" alt="Hero" width={28} height={28} />
-                  BankId
+                <form onSubmit={e=>handleGetLoginSession(e)} className="flex">
+                  <Input id="socialSecurityNumber" type="text"  placeholder="xxxxxxxx-xxxx" value={ssn} onChange={e=>setSsn(e.currentTarget.value)} onBlur={(e => {
+                            const value = e.target.value
+                            try{
+                                const formatedValue = convertPersonalNumber(value)
+                                setSsn(formatedValue)
+                            }catch(e){
+                            }
+                        })}/>
+                  <Button type='submit' disabled={disableButon} className="ml-2">
+                    <Image src="/bankid-icon.svg" alt="Hero" width={28} height={28} />
+                    BankId
                   </Button>
-              </div>
+                </form>
               <p className="text-sm text-red-600">{error}</p>
               <div className='flex justify-end mt-4'>
                 <Link className='inline' href='/'><p className="inline text-sm text-right mt-5 hover:underline cursor-pointer">Back to home page.</p></Link>

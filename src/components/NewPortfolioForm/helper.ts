@@ -23,7 +23,7 @@ export const formDefaultValues = {
 
     accountDetails: {
         portfolioTypeCode: undefined,
-        feeSubscription: 0,
+        feeSubscription: undefined,
         modelPortfolioCode: undefined,
     },
 

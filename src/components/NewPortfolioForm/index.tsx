@@ -130,10 +130,7 @@ export function NewPortfolioForm() {
             adress && form.setValue('mainActor.address', capitalize(adress, 'word'))
             zip && form.setValue('mainActor.postalCode', zip)
             city && form.setValue('mainActor.city', capitalize(city, 'word'))
-            form.trigger('mainActor.surname')
-            form.trigger('mainActor.address')
-            form.trigger('mainActor.postalCode')
-            form.trigger('mainActor.city')
+            form.trigger('mainActor')
             setShowForm(true)
         } else if (response.status === 400) {
             const res = await response.json();
@@ -177,11 +174,7 @@ export function NewPortfolioForm() {
             adress2 && form.setValue('mainActor.address', capitalize(adress2, 'word'))
             zip && form.setValue('mainActor.postalCode', zip)
             city && form.setValue('mainActor.city', capitalize(city, 'word'))
-            form.trigger('mainActor.firstname')
-            form.trigger('mainActor.surname')
-            form.trigger('mainActor.address')
-            form.trigger('mainActor.postalCode')
-            form.trigger('mainActor.city')
+            form.trigger('mainActor')
             setShowForm(true)
 
         } else if (response.status === 404) {
@@ -227,6 +220,8 @@ export function NewPortfolioForm() {
             adress2 && form.setValue('representor.address', capitalize(adress2, 'word'))
             zip && form.setValue('representor.postalCode', zip)
             city && form.setValue('representor.city', capitalize(city, 'word'))
+
+            form.trigger('representor')
         } else if (response.status === 400) {
             const res = await response.json();
             form.setError('representor.personalNumber', {
@@ -277,6 +272,7 @@ export function NewPortfolioForm() {
             })
         } else {
             form.setValue('representor', undefined)
+            form.trigger('representor')
         }
     }
 
@@ -773,6 +769,7 @@ export function NewPortfolioForm() {
                                                                                 const currVal = form.getValues("payment.deposit")
                                                                                 const left = currVal.filter(e => e !== field)
                                                                                 form.setValue('payment.deposit', left)
+                                                                                form.trigger('payment.deposit')
                                                                             }}>
                                                                                 <Trash2 />
                                                                             </Button>
@@ -800,7 +797,7 @@ export function NewPortfolioForm() {
                                                                     onClick={() => {
                                                                         const currVal = form.getValues("payment.deposit")
                                                                         currVal.push({
-                                                                            amount: 0,
+                                                                            amount: NaN,
                                                                             isRecurring: true,
                                                                         })
                                                                         form.setValue('payment.deposit', currVal)

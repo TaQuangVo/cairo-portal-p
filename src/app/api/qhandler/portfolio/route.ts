@@ -35,6 +35,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
   const constext = body.constext
 
   try{
+    console.log('hello')
     const response = await creationSequence(cairoCustomer, cairoAccount, cairoPortfolio, cairoPortfolioSubscription, cairoBankAccount, cairoMandate, cairoInstruction, signal)
 
     clearTimeout(timeoutId);
@@ -51,17 +52,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
 
     const isPartialFailure = (portfolioCreationFailed || accountCreationFailed || portalUserRegistrationFailed || subscriptionCreationFailed || bankAccountCreationFailed || mandateCreationFailed || instructionCreationFailed) && !customerCreationFailed
     const isSuccess = !(portfolioCreationFailed || accountCreationFailed || portalUserRegistrationFailed || subscriptionCreationFailed || bankAccountCreationFailed || mandateCreationFailed || instructionCreationFailed || customerCreationFailed)
-    console.log("isSuccess:" + isSuccess)
-    console.log('portalUserRegistrationFailed:', portalUserRegistrationFailed)
-    console.log('customerCreationFailed:', customerCreationFailed)
-    console.log('portfolioCreationFailed:', portfolioCreationFailed)
-    console.log('accountCreationFailed:', accountCreationFailed)
-    console.log('subscriptionCreationFailed:', subscriptionCreationFailed)
-    console.log('bankAccountCreationFailed:', bankAccountCreationFailed)
-    console.log('mandateCreationFailed:', mandateCreationFailed)
-    console.log('instructionCreationFailed:', instructionCreationFailed)
-    console.log('isPartialFailure:', isPartialFailure)
-
 
 
     let retried = 10000
@@ -70,11 +60,15 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     try{
       const retriedHeader = req.headers.get('Upstash-Retried')
       if(retriedHeader){
-        retried = parseInt(retriedHeader) + 1
+        retried = parseInt(retriedHeader)
       }
     }catch(e){
       message = 'Error while parsing retried header'
     }
+
+    console.log('retried', retried)
+    console.log('isSuccess', isSuccess)
+    console.log('isPartialFailure', isPartialFailure)
 
     if(isSuccess){
       returnStatus = 'success'
@@ -82,7 +76,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     }else if(retried < PORTFOLIO_HANDLER_RETRIES){
       returnStatus = 'pending'
       message = 'Failed to create account, Retries left: ' + (PORTFOLIO_HANDLER_RETRIES - retried)
-    }else if(retried === PORTFOLIO_HANDLER_RETRIES){
+    }else if(retried >= PORTFOLIO_HANDLER_RETRIES){
       if(isPartialFailure){
         returnStatus = 'partial failure'
       }else{
@@ -90,6 +84,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       }
       message = 'Failed to create account, Out of retries, This will be handled by a support team member.'
     }
+    console.log('returnStatus', returnStatus)
 
     const resData:Partial<NewPortfolioResponse> = {
       status: returnStatus,
@@ -104,7 +99,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       return new Response(`Image with id "${cairoPortfolio.portfolioDescription}" processed successfully.`, {status: 200})
     }
 
-    return new Response(`Image with id "${cairoPortfolio.portfolioDescription}" processed successfully.`, {status: 500})
+    return new Response(`Failed to process message, status: ${returnStatus}`, {status: 500})
   }catch(e){
     const resData:Partial<NewPortfolioResponse> = {
         status: 'error',
