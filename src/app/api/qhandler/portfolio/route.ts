@@ -32,10 +32,9 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
   const cairoInstruction = body.instruction
 
   const rawBody = body.rawBody
-  const constext = body.constext
+  const context = body.context
 
   try{
-    console.log('hello')
     const response = await creationSequence(cairoCustomer, cairoAccount, cairoPortfolio, cairoPortfolioSubscription, cairoBankAccount, cairoMandate, cairoInstruction, signal)
 
     clearTimeout(timeoutId);
@@ -53,7 +52,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     const isPartialFailure = (portfolioCreationFailed || accountCreationFailed || portalUserRegistrationFailed || subscriptionCreationFailed || bankAccountCreationFailed || mandateCreationFailed || instructionCreationFailed) && !customerCreationFailed
     const isSuccess = !(portfolioCreationFailed || accountCreationFailed || portalUserRegistrationFailed || subscriptionCreationFailed || bankAccountCreationFailed || mandateCreationFailed || instructionCreationFailed || customerCreationFailed)
 
-
     let retried = 10000
     let message = ''
     let returnStatus: NewPortfolioResponse['status'] = 'error'
@@ -65,10 +63,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     }catch(e){
       message = 'Error while parsing retried header'
     }
-
-    console.log('retried', retried)
-    console.log('isSuccess', isSuccess)
-    console.log('isPartialFailure', isPartialFailure)
 
     if(isSuccess){
       returnStatus = 'success'
@@ -84,7 +78,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       }
       message = 'Failed to create account, Out of retries, This will be handled by a support team member.'
     }
-    console.log('returnStatus', returnStatus)
 
     const resData:Partial<NewPortfolioResponse> = {
       status: returnStatus,
@@ -93,7 +86,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       dataType: 'SequentialCustomerAccountPortfolioCreatioResult',
       data: response
     }
-    updateResponseToSubmission(resData, constext.submissionResultId as string)
+    updateResponseToSubmission(resData, context.submissionResultId as string)
 
     if(isSuccess){
       return new Response(`Image with id "${cairoPortfolio.portfolioDescription}" processed successfully.`, {status: 200})
@@ -108,7 +101,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         dataType: 'Error',
         data: (e as Error)
     }
-    updateResponseToSubmission(resData, constext.submissionResultId as string)
+    updateResponseToSubmission(resData, context.submissionResultId as string)
 
     return Response.json(resData, {status: 500})
   }

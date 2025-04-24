@@ -17,7 +17,7 @@ export interface PortfolioCreationMessageBody {
         mandate: CairoMandateCreationPayload | null,
         instruction: CairoInstructionCreationPayload[] | null,
         rawBody: any,
-        constext:{
+        context:{
             submitterId: string,
             submissionResultId: string,
         }
