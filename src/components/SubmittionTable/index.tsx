@@ -30,6 +30,7 @@ import { DBPortfolioSubmittions } from "@/lib/db.type";
 import { columns } from "./definition";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog";
+import { useRouter } from 'next/navigation'
 
 
 export function PortfolioDataTable({ submissions: defaultSubmittions }: { submissions: { submissions: DBPortfolioSubmittions[], total: number } }) {
@@ -51,9 +52,11 @@ export function PortfolioDataTable({ submissions: defaultSubmittions }: { submis
     status: true,
     messages: false,
     createdAt: false,
+    createdBy: false,
   });
   const [rowSelection, setRowSelection] = React.useState({});
 
+  const router = useRouter()
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const debouncedQuery = useDebounce(searchQuery, 500);
@@ -189,11 +192,14 @@ export function PortfolioDataTable({ submissions: defaultSubmittions }: { submis
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}
-                      className={cell.column.id === 'Name' ? "hover:underline cursor-pointer" : ''}
+                      className={cell.column.id === 'Name' || cell.column.id === 'createdBy' ? "hover:underline cursor-pointer" : ''}
                       onClick={() => {
                         if (cell.column.id === 'Name') {
                           setJsonDataView(JSON.stringify(row.original, null, 2))
                           setViewingSubmittion(row.original);
+                        }
+                        if (cell.column.id === 'createdBy') {
+                          router.push('/dashboard/users/' + row.original.createdBy)
                         }
                       }}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}

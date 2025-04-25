@@ -18,7 +18,7 @@ export default function BankIdLoginWithQrCodeComponent({ transactionId, onComple
     navigator.userAgent
   )
   const isNarrowScreen = window.innerWidth < MOBILE_BREAKPOINT
-  const isMobile = isUserAgentMobile || isNarrowScreen
+  const isMobile = isUserAgentMobile// || isNarrowScreen
 
   useEffect(() => {
     if(isMobile){

@@ -86,7 +86,7 @@ export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
       id: "messages",
     },
     {
-      header: "Created time",
+      header: "Submitted time",
       accessorFn: (row) => row.createdAt,
       cell: ({ row }) => {
         return (
@@ -94,6 +94,16 @@ export const columns: ColumnDef<DBPortfolioSubmittions>[] = [
         )
       },
       id: "createdAt",
+    },
+    {
+      header: "Submitted by",
+      accessorFn: (row) => row.createdBy,
+      cell: ({ row }) => {
+        return (
+          <p>{row.getValue('createdBy')}</p>
+        )
+      },
+      id: "createdBy",
     },
     {
       id: "actions",
